@@ -12,8 +12,8 @@ process PICARD {
     """
     picard FastqToSam \\
         O="${meta.id}_unaligned.bam" \\
-        F1=${meta.id}_R1.fastp.fastq.gz \\
-        F2=${meta.id}_R2.fastp.fastq.gz \\
+        F1=${meta.id}_R1.fastq.gz \\
+        F2=${meta.id}_R2.fastq.gz \\
         SM=${meta.id} \\
         LB=Library1 \\
         PU=Unit1 \\

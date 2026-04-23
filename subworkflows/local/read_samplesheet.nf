@@ -1,21 +1,15 @@
 /*
- * Parameters
- */
-params {
-    samplesheet: Path
-    _adapter_fasta: Path
-}
-
-/*
- * Read inparams. the samplesheet and emit resulting metamaps to main workflow
+ * Read in the samplesheet and emit resulting metamaps to main workflow
  */
 workflow READ_SAMPLESHEET {
 
+    take:
+    samplesheet
+
     main:
-    channel.fromPath(params.samplesheet)
+    channel.fromPath(samplesheet)
         .splitCsv(header: true)
         .map { row -> build_metamap(row) }
-        .map { meta, fastqs -> [ meta, fastqs, params._adapter_fasta ] }
         .set { reads }
 
     emit:

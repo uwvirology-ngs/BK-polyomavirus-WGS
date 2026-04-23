@@ -1,10 +1,16 @@
 #!/usr/bin/env nextflow
 
 /*
+ * Parameters
+ */
+params {
+    samplesheet: Path
+}
+
+/*
  * Subworkflows
  */
-include { READ_SAMPLESHEET        } from './subworkflows/local/read_samplesheet.nf'
-include { FASTQ_TRIM_FASTP_FASTQC } from './subworkflows/nf-core/fastq_trim_fastp_fastqc.nf'
+include { READ_SAMPLESHEET } from './subworkflows/local/read_samplesheet.nf'
 
 /*
  * Modules
@@ -15,19 +21,12 @@ include { FGBIO  } from './modules/local/fgbio.nf'
 workflow {
     
     main:
-    READ_SAMPLESHEET()
-
-    FASTQ_TRIM_FASTP_FASTQC (
-        READ_SAMPLESHEET.out.reads,
-        params.save_trimmed_fail,
-        params.discard_trimmed_pass,
-        params.save_merged,
-        params.skip_fastp,
-        params.skip_fastqc
+    READ_SAMPLESHEET(
+        params.samplesheet
     )
 
     PICARD (
-        FASTQ_TRIM_FASTP_FASTQC.out.reads
+        READ_SAMPLESHEET.out.reads
     )
 
     FGBIO (
