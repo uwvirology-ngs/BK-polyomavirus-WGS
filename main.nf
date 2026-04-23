@@ -1,28 +1,28 @@
 #!/usr/bin/env nextflow
 
 /*
+ * Subworkflows
+ */
+include { READ_SAMPLESHEET } from './subworkflows/read_samplesheet.nf'
+
+/*
  * Modules
  */
 include { PICARD } from './modules/picard.nf'
 include { FGBIO  } from './modules/fgbio.nf'
 
-/*
- * Parameters
- */
-params {
-    samplesheet: Path
-}
-
 workflow {
+    
     main:
-    read_ch = channel.fromPath(params.samplesheet)
-        .splitCsv(header: true)
-        .map { row -> [row.sample, file(row.fastq_1), file(row.fastq_2)] }
-        .view()
+    READ_SAMPLESHEET()
 
-    PICARD(read_ch)
+    PICARD (
+        READ_SAMPLESHEET.out.reads
+    )
 
-    FGBIO(PICARD.out.unaligned_bam)
+    FGBIO (
+        PICARD.out.unaligned_bam
+    )
 
     publish:
     unaligned_bam       = PICARD.out.unaligned_bam

@@ -3,18 +3,18 @@ process PICARD {
     container 'community.wave.seqera.io/library/picard:3.4.0--e9963040df0a9bf6'
 
     input:
-    tuple val(sample_name), path(read1), path(read2)
+    tuple val(meta), path(reads)
 
     output:
-    tuple val(sample_name), path("${sample_name}_unaligned.bam"),   emit: unaligned_bam
+    tuple val(meta), path("${meta.id}_unaligned.bam"),  emit: unaligned_bam
 
     script:
     """
     picard FastqToSam \\
-        O="${sample_name}_unaligned.bam" \\
-        F1=${read1} \\
-        F2=${read2} \\
-        SM=${sample_name} \\
+        O="${meta.id}_unaligned.bam" \\
+        F1=${meta.id}_1.fastq.gz \\
+        F2=${meta.id}_2.fastq.gz \\
+        SM=${meta.id} \\
         LB=Library1 \\
         PU=Unit1 \\
         PL=Illumina
