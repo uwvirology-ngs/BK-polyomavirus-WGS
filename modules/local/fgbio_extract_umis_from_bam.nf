@@ -1,4 +1,4 @@
-process FGBIO {
+process FGBIO_EXTRACT_UMIS_FROM_BAM {
 
     container 'community.wave.seqera.io/library/fgbio:1.5.1--9658b275f6ef481d'
 

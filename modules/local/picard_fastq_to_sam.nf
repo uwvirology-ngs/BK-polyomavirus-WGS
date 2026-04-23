@@ -1,4 +1,4 @@
-process PICARD {
+process PICARD_FASTQ_TO_SAM {
 
     container 'community.wave.seqera.io/library/picard:3.4.0--e9963040df0a9bf6'
 
