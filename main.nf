@@ -5,12 +5,14 @@
  */
 params {
     samplesheet: Path
+    db: Path
 }
 
 /*
  * Subworkflows
  */
 include { READ_SAMPLESHEET } from './subworkflows/local/read_samplesheet.nf'
+include { REFERENCE_PREP   } from './subworkflows/reference_prep'
 
 /*
  * Modules
@@ -36,6 +38,12 @@ workflow {
 
     PICARD_SAM_TO_FASTQ (
         FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
+    )
+
+    REFERENCE_PREP (
+        READ_SAMPLESHEET.out.reads,
+        file(params.db),
+        false
     )
 
     publish:
