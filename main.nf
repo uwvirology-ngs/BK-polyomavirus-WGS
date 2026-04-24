@@ -12,7 +12,7 @@ params {
  * Subworkflows
  */
 include { READ_SAMPLESHEET } from './subworkflows/local/read_samplesheet.nf'
-include { REFERENCE_PREP   } from './subworkflows/reference_prep'
+include { REFERENCE_PREP   } from './subworkflows/revica/reference_prep'
 
 /*
  * Modules

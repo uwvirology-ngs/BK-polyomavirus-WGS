@@ -6,10 +6,10 @@
 // for downstream alignment and consensus assembly processes.
 //
 
-include { BWA_MEM_INDEX        } from '../modules/bwa_mem_index' 
-include { BWA_MEM_ALIGN_DB     } from '../modules/bwa_mem_align_db'
-include { SELECT_REFERENCE      } from '../modules/select_reference'                     
-include { MAKE_REFERENCE_FASTA  } from '../modules/make_reference_fasta'
+include { BWA_MEM_INDEX        } from '../../modules/revica/bwa_mem_index' 
+include { BWA_MEM_ALIGN_DB     } from '../../modules/revica/bwa_mem_align_db'
+include { SELECT_REFERENCE      } from '../../modules/revica/select_reference'                     
+include { MAKE_REFERENCE_FASTA  } from '../../modules/revica/make_reference_fasta'
 
 
 workflow REFERENCE_PREP {                                                 
