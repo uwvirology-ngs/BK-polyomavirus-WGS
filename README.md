@@ -12,7 +12,7 @@ Install [`Nextflow`](https://www.nextflow.io/docs/latest/install.html)
 
 Install [`Docker`](https://docs.docker.com/engine/install/)
 
-# BK-polyomavirus-WGS
+## Usage
 
 ### Run Test:
 
