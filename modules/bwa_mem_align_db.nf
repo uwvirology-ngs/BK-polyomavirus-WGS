@@ -16,7 +16,6 @@ process BWA_MEM_ALIGN_DB {
     task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     def input = meta.single_end ? "$fastq" : "${fastq[0]} ${fastq[1]}"
     def bwa = use_mem2 ? "bwa-mem2" : "bwa"

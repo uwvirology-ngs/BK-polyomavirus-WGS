@@ -14,7 +14,6 @@ process MAKE_REFERENCE_FASTA {
     task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: ''
     """
     samtools faidx ${db} ${ref_info.acc} > ${prefix}.fa
