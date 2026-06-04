@@ -40,20 +40,22 @@ workflow {
         FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
     )
 
+    // use revica-strm to select appropriate reference genomes
     REFERENCE_PREP (
-        READ_SAMPLESHEET.out.reads,
+        PICARD_SAM_TO_FASTQ.out.umi_extracted_fastqs,
         file(params.db),
         false
     )
     
+    // join revica results to pair reads with each selected reference
     revica_ch = REFERENCE_PREP.out.reads.join(REFERENCE_PREP.out.ref)
 
     revica_ch.view()
 
     publish:
-    unaligned_bam       = PICARD_FASTQ_TO_SAM.out.unaligned_bam
-    umi_extracted_bam   = FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
-    umi_extracted_fastq = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq
+    unaligned_bam        = PICARD_FASTQ_TO_SAM.out.unaligned_bam
+    umi_extracted_bam    = FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
+    umi_extracted_fastqs = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastqs
 }
 
 output {
@@ -63,7 +65,7 @@ output {
     umi_extracted_bam {
         path 'fgbio_extract_umis_from_bam'
     }
-    umi_extracted_fastq {
+    umi_extracted_fastqs {
         path 'picard_sam_to_fastq'
     }
 }
