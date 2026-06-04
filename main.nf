@@ -45,6 +45,10 @@ workflow {
         file(params.db),
         false
     )
+    
+    revica_ch = REFERENCE_PREP.out.reads.join(REFERENCE_PREP.out.ref)
+
+    revica_ch.view()
 
     publish:
     unaligned_bam       = PICARD_FASTQ_TO_SAM.out.unaligned_bam
