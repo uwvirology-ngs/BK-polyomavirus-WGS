@@ -20,6 +20,7 @@ include { REFERENCE_PREP   } from './subworkflows/revica/reference_prep'
 include { PICARD_FASTQ_TO_SAM         } from './modules/local/picard_fastq_to_sam.nf'
 include { FGBIO_EXTRACT_UMIS_FROM_BAM } from './modules/local/fgbio_extract_umis_from_bam.nf'
 include { PICARD_SAM_TO_FASTQ         } from './modules/local/picard_sam_to_fastq.nf'
+include { BWA_ALIGN_FASTQ             } from './modules/local/bwa_align_fastq.nf'
 
 workflow {
     
@@ -50,12 +51,15 @@ workflow {
     // join revica results to pair reads with each selected reference
     revica_ch = REFERENCE_PREP.out.reads.join(REFERENCE_PREP.out.ref)
 
-    revica_ch.view()
+    BWA_ALIGN_FASTQ(
+        revica_ch
+    )
 
     publish:
-    unaligned_bam        = PICARD_FASTQ_TO_SAM.out.unaligned_bam
-    umi_extracted_bam    = FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
-    umi_extracted_fastqs = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastqs
+    unaligned_bam             = PICARD_FASTQ_TO_SAM.out.unaligned_bam
+    umi_extracted_bam         = FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
+    umi_extracted_fastqs      = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastqs
+    aligned_umi_extracted_bam = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
 }
 
 output {
@@ -67,5 +71,8 @@ output {
     }
     umi_extracted_fastqs {
         path 'picard_sam_to_fastq'
+    }
+    aligned_umi_extracted_bam {
+        path 'bwa_align_fastq'
     }
 }
