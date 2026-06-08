@@ -1,6 +1,8 @@
 /*
- * With the UMI bases in the unaligned BAM file, convert the unaligned BAM to FastQ 
- * so we may select a reference then align the reads.
+ * Step 3 of the Twist Bioscience UMI Protocol
+ *
+ * With the UMI sequences extracted, convert the unaligned BAM files back to 
+ * FASTQ format in preparation for reference selection and alignment.
  * 
  * Does not use interleaved reads as it's not convenient for revica-strm.
  */

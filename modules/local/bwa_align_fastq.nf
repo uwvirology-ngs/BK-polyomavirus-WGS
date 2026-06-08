@@ -1,7 +1,7 @@
 /*
- * Step 4 of Twist UMI Protocol
+ * Step 4 of the Twist Bioscience UMI Protocol
  * 
- * aligns the UMI extracted FastQ files to the reference genome using bwa
+ * Align the UMI extracted FastQ files to the reference genome using BWA.
  */
 process BWA_ALIGN_FASTQ {
 

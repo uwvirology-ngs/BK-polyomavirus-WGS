@@ -1,3 +1,9 @@
+/*
+ * Step 2 of the Twist Bioscience UMI Protocol
+ *
+ * Extract UMI sequences from the reads and store them as 
+ * metadata within the unaligned BAM files. 
+ */
 process FGBIO_EXTRACT_UMIS_FROM_BAM {
 
     container 'community.wave.seqera.io/library/fgbio:1.5.1--9658b275f6ef481d'
