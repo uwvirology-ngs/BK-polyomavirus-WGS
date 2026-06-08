@@ -55,6 +55,11 @@ workflow {
         revica_ch
     )
 
+    // combine each aligned BAM with the correct UMI-extracted bam from Twist step 2 
+    merged_bams_ch = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
+        .combine(FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam, by: 0)
+        .view()
+
     publish:
     unaligned_bam             = PICARD_FASTQ_TO_SAM.out.unaligned_bam
     umi_extracted_bam         = FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
