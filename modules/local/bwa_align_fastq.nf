@@ -17,7 +17,7 @@ process BWA_ALIGN_FASTQ {
     """
     bwa index ${ref}
 
-    bwa mem -p -t 8 ${ref} ${reads} | 
+    bwa mem -t 8 ${ref} ${reads} | 
     samtools sort -@ 8 -o "${ref.simpleName}_aligned_umi_extracted.bam"
     """
 }
