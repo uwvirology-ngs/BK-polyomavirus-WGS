@@ -12,7 +12,7 @@ process PICARD_MERGE_BAM_ALIGNMENT {
     tuple val(meta), path(aligned_bam), path(ref), path(umi_extracted_bam)
 
     output:
-    tuple val(meta), path("*.bam"),     emit: merged_bam
+    tuple val(meta), path("*.bam"), path(ref),  emit: merged_bam
 
     script:
     """

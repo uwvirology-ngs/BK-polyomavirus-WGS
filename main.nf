@@ -22,6 +22,7 @@ include { FGBIO_EXTRACT_UMIS_FROM_BAM } from './modules/local/fgbio_extract_umis
 include { PICARD_SAM_TO_FASTQ         } from './modules/local/picard_sam_to_fastq.nf'
 include { BWA_ALIGN_FASTQ             } from './modules/local/bwa_align_fastq.nf'
 include { PICARD_MERGE_BAM_ALIGNMENT  } from './modules/local/picard_merge_bam_alignment.nf'
+include { FGBIO_GROUP_READS_BY_UMI    } from './modules/local/fgbio_group_reads_by_umi.nf'
 
 workflow {
     
@@ -65,12 +66,17 @@ workflow {
         merged_bams_ch
     )
 
+    FGBIO_GROUP_READS_BY_UMI(
+        PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
+    )
+
     publish:
     unaligned_bam             = PICARD_FASTQ_TO_SAM.out.unaligned_bam
     umi_extracted_bam         = FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
     umi_extracted_fastqs      = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastqs
     aligned_umi_extracted_bam = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
     merged_bam                = PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
+    grouped_bam               = FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
 }
 
 output {
@@ -88,5 +94,8 @@ output {
     }
     merged_bam {
         path 'picard_merge_bam_alignment'
+    }
+    grouped_bam {
+        path 'picard_group_reads_by_umi'
     }
 }
