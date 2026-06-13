@@ -6,7 +6,7 @@
  */
 process FGBIO_CALL_DUPLEX_CONSENSUS_READS {
 
-    container 'community.wave.seqera.io/library/fgbio:1.5.1--9658b275f6ef481d'
+    label 'twist'
 
     input:
     tuple val(meta), path(grouped_bam), path(ref)

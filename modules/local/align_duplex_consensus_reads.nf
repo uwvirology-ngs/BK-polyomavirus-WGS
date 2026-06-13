@@ -5,7 +5,7 @@
  */
 process ALIGN_DUPLEX_CONSENSUS_READS {
 
-    container 'community.wave.seqera.io/library/bwa_picard_samtools:2b3db7a82d3cca92'
+    label 'twist'
 
     input:
     tuple val(meta), path(unaligned_consensus_bam), path(ref)

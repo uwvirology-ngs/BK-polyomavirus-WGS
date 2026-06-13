@@ -5,7 +5,7 @@
  */
 process BWA_ALIGN_FASTQ {
 
-    container 'community.wave.seqera.io/library/bwa_samtools:eac4ad78deba8f5d'
+    label 'twist'
 
     input: 
     tuple val(meta), path(reads), val(acc), path(ref)

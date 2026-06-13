@@ -6,7 +6,7 @@
  */ 
 process PICARD_MERGE_BAM_ALIGNMENT {
 
-    container 'community.wave.seqera.io/library/picard_samtools:31cba80ddbe50560'
+    label 'twist'
 
     input:
     tuple val(meta), path(aligned_bam), path(ref), path(umi_extracted_bam)
