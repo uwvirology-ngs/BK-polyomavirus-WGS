@@ -24,6 +24,7 @@ include { BWA_ALIGN_FASTQ                   } from './modules/local/bwa_align_fa
 include { PICARD_MERGE_BAM_ALIGNMENT        } from './modules/local/picard_merge_bam_alignment.nf'
 include { FGBIO_GROUP_READS_BY_UMI          } from './modules/local/fgbio_group_reads_by_umi.nf'
 include { FGBIO_CALL_DUPLEX_CONSENSUS_READS } from './modules/local/fgbio_call_duplex_consensus_reads.nf'
+include { ALIGN_DUPLEX_CONSENSUS_READS      } from './modules/local/align_duplex_consensus_reads.nf'
 
 workflow {
     
@@ -75,6 +76,10 @@ workflow {
         FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
     )
 
+    ALIGN_DUPLEX_CONSENSUS_READS(
+        FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
+    )
+
     publish:
     unaligned_bam             = PICARD_FASTQ_TO_SAM.out.unaligned_bam
     umi_extracted_bam         = FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
@@ -83,6 +88,7 @@ workflow {
     merged_bam                = PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
     grouped_bam               = FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
     unaligned_consensus_bam   = FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
+    aligned_consensus_bam     = ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam
 }
 
 output {
@@ -106,5 +112,8 @@ output {
     }
     unaligned_consensus_bam {
         path 'fgbio_call_duplex_consensus_reads'
+    }
+    aligned_consensus_bam {
+        path 'align_duplex_consensus_reads'
     }
 }

@@ -1,0 +1,28 @@
+/*
+ * Step 9 of the Twist Bioscience UMI Protocol
+ *
+ * After consensus duplex collapse, convert reads back to FASTQ format and realign. 
+ */
+process ALIGN_DUPLEX_CONSENSUS_READS {
+
+    container 'community.wave.seqera.io/library/bwa_picard_samtools:2b3db7a82d3cca92'
+
+    input:
+    tuple val(meta), path(unaligned_consensus_bam), path(ref)
+
+    output:
+    tuple val(meta), path("*.bam"), path(ref),  emit: aligned_consensus_bam
+
+    script:
+    """
+    picard SamToFastq \\
+        I=${unaligned_consensus_bam} \\
+        F="${ref.simpleName}_consensus_interleaved.fastq" \\
+        INTERLEAVE=true
+
+    bwa index ${ref}
+
+    bwa mem -p -t 8 ${ref} "${ref.simpleName}_consensus_interleaved.fastq" |
+    samtools sort -@ 8 -o "${ref.simpleName}_aligned_consensus.bam"
+    """
+}
