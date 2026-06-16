@@ -85,7 +85,6 @@ workflow {
     consensus_ch = FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
         .join(ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam)
         .map { meta, bam1, ref1, bam2, _ref2 -> tuple(meta, bam1, bam2, ref1) }
-        .view()
 
     PICARD_MERGE_CONSENSUS_BAMS (
         consensus_ch
