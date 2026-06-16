@@ -25,6 +25,7 @@ include { PICARD_MERGE_BAM_ALIGNMENT        } from './modules/local/picard_merge
 include { FGBIO_GROUP_READS_BY_UMI          } from './modules/local/fgbio_group_reads_by_umi.nf'
 include { FGBIO_CALL_DUPLEX_CONSENSUS_READS } from './modules/local/fgbio_call_duplex_consensus_reads.nf'
 include { ALIGN_DUPLEX_CONSENSUS_READS      } from './modules/local/align_duplex_consensus_reads.nf'
+include { PICARD_MERGE_CONSENSUS_BAMS       } from './modules/local/picard_merge_consensus_bams.nf'
 
 workflow {
     
@@ -79,6 +80,15 @@ workflow {
 
     ALIGN_DUPLEX_CONSENSUS_READS(
         FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
+    )
+
+    consensus_ch = FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
+        .join(ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam)
+        .map { meta, bam1, ref1, bam2, _ref2 -> tuple(meta, bam1, bam2, ref1) }
+        .view()
+
+    PICARD_MERGE_CONSENSUS_BAMS (
+        consensus_ch
     )
 
     publish:
