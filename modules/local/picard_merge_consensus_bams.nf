@@ -11,7 +11,7 @@ process PICARD_MERGE_CONSENSUS_BAMS {
     tuple val(meta), path(unaligned_consensus_bam), path(aligned_consensus_bam), path(ref)
 
     output:
-    tuple val(meta), path("*.bam"), path(ref)
+    tuple val(meta), path("*_consensus_aligned_merged.bam"), path(ref),     emit: final_consensus_bam
 
     script:
     """
@@ -41,5 +41,13 @@ process PICARD_MERGE_CONSENSUS_BAMS {
         ATTRIBUTES_TO_RETAIN=ae \\
         ATTRIBUTES_TO_RETAIN=be \\
         ATTRIBUTES_TO_RETAIN=ce
+
+    picard AddOrReplaceReadGroups \\
+        I="${ref.simpleName}_merged_no_read_group_consensus.bam" \\
+        O="${ref.simpleName}_consensus_aligned_merged.bam" \\
+        RGID=${ref.simpleName} \\
+        RGLB=sample_lib \\
+        RGPL=Illumina RGSM=sample_name \\
+        RGPU=NA
     """
 }

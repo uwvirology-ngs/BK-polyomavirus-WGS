@@ -100,6 +100,7 @@ workflow {
     grouped_bam               = FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
     unaligned_consensus_bam   = FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
     aligned_consensus_bam     = ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam
+    final_consensus_bam       = PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam
 }
 
 output {
@@ -126,5 +127,8 @@ output {
     }
     aligned_consensus_bam {
         path 'align_duplex_consensus_reads'
+    }
+    final_consensus_bam {
+        path 'picard_merge_consensus_bams'
     }
 }
