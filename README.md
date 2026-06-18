@@ -21,6 +21,12 @@ nextflow run main.nf \
     -params-file test.json
 ```
 
+### Run Test (One Sample): 
+```bash
+nextflow run main.nf \
+    -params-file test_single.json
+```
+
 ## CLI Options
 
 ### Required Parameters
