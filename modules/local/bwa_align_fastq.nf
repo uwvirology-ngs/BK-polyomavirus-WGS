@@ -8,7 +8,7 @@ process BWA_ALIGN_FASTQ {
     label 'twist'
 
     input: 
-    tuple val(meta), path(reads), val(acc), path(ref)
+    tuple val(meta), path(reads), path(ref), val(ref_info)
 
     output: 
     tuple val(meta), path("*.bam"), path(ref),  emit: aligned_umi_extracted_bam
@@ -17,7 +17,7 @@ process BWA_ALIGN_FASTQ {
     """
     bwa index ${ref}
 
-    bwa mem -t 8 ${ref} ${reads} | 
-    samtools sort -@ 8 -o "${ref.simpleName}_aligned_umi_extracted.bam"
+    bwa mem -p -t 8 ${ref} ${reads} \\
+    | samtools sort -@ 8 -o "${ref.simpleName}_aligned_umi_extracted.bam"
     """
 }

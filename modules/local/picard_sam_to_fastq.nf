@@ -4,7 +4,8 @@
  * With the UMI sequences extracted, convert the unaligned BAM files back to 
  * FASTQ format in preparation for reference selection and alignment.
  * 
- * Does not use interleaved reads as it's not convenient for revica-strm.
+ * Generates output FASTQs in interleaved and paired format for continuation with the 
+ * Twist protocol and input into REVICA-STRM for reference selection, respectively. 
  */
 process PICARD_SAM_TO_FASTQ {
 
@@ -14,14 +15,18 @@ process PICARD_SAM_TO_FASTQ {
     tuple val(meta), path(unaligned_bam_umi_extracted)
 
     output:
-    tuple val(meta), path("${meta.id}_umi_extracted_R*"),    emit: umi_extracted_fastqs
+    tuple val(meta), path("${meta.id}_umi_extracted_i*"),   emit: umi_extracted_fastq_interleaved
+    tuple val(meta), path("${meta.id}_umi_extracted_R*"),   emit: umi_extracted_fastq_paired
 
     script:
     """
     picard SamToFastq \\
         I="${unaligned_bam_umi_extracted}" \\
-        F="${meta.id}_umi_extracted_R1.fastq" \\
-        F2="${meta.id}_umi_extracted_R2.fastq" \\
-        INTERLEAVE=false
+        F="${meta.id}_umi_extracted_interleaved.fastq" \\
+        INTERLEAVE=true
+
+    # generate paired fastqs for REVICA-STRM input
+    seqtk seq -1 "${meta.id}_umi_extracted_interleaved.fastq" > "${meta.id}_umi_extracted_R1.fastq"
+    seqtk seq -2 "${meta.id}_umi_extracted_interleaved.fastq" > "${meta.id}_umi_extracted_R2.fastq"
     """
 }

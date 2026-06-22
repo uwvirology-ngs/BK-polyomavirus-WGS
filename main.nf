@@ -48,13 +48,15 @@ workflow {
 
     // use revica-strm to select appropriate reference genomes
     REFERENCE_PREP (
-        PICARD_SAM_TO_FASTQ.out.umi_extracted_fastqs,
+        PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired,
         file(params.db),
         false
     )
-    
-    // join revica results to pair reads with each selected reference
-    revica_ch = REFERENCE_PREP.out.reads.join(REFERENCE_PREP.out.ref)
+
+    // pair umi-extracted FASTQs with selected reference genomes for alignment
+    revica_ch = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
+        .combine(REFERENCE_PREP.out.ref, by: 0)
+        .map {meta, reads, ref_info, ref -> tuple(meta, reads, ref, ref_info)}
 
     BWA_ALIGN_FASTQ(
         revica_ch
@@ -91,15 +93,16 @@ workflow {
     )
 
     publish:
-    unaligned_bam             = PICARD_FASTQ_TO_SAM.out.unaligned_bam
-    umi_extracted_bam         = FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
-    umi_extracted_fastqs      = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastqs
-    aligned_umi_extracted_bam = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
-    merged_bam                = PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
-    grouped_bam               = FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
-    unaligned_consensus_bam   = FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
-    aligned_consensus_bam     = ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam
-    final_consensus_bam       = PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam
+    unaligned_bam                   = PICARD_FASTQ_TO_SAM.out.unaligned_bam
+    umi_extracted_bam               = FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
+    umi_extracted_fastq_interleaved = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
+    umi_extracted_fastq_paired      = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired
+    aligned_umi_extracted_bam       = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
+    merged_bam                      = PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
+    grouped_bam                     = FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
+    unaligned_consensus_bam         = FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
+    aligned_consensus_bam           = ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam
+    final_consensus_bam             = PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam
 }
 
 output {
@@ -109,8 +112,11 @@ output {
     umi_extracted_bam {
         path 'fgbio_extract_umis_from_bam'
     }
-    umi_extracted_fastqs {
-        path 'picard_sam_to_fastq'
+    umi_extracted_fastq_interleaved {
+        path 'picard_sam_to_fastq/interleaved'
+    }
+    umi_extracted_fastq_paired {
+        path 'picard_sam_to_fastq/paired'
     }
     aligned_umi_extracted_bam {
         path 'bwa_align_fastq'
