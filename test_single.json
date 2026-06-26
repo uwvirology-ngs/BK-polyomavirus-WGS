@@ -1,3 +1,5 @@
 {
-    "samplesheet": "${projectDir}/assets/samplesheet_single.csv"
+    "samplesheet": "${projectDir}/assets/samplesheet_single.csv",
+    "provide_ref": true,
+    "ref": "${projectDir}/assets/references/PQ859676.1.fa"
 }

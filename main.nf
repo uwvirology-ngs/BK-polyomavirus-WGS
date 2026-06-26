@@ -5,6 +5,8 @@
  */
 params {
     samplesheet: Path
+    provide_ref: Boolean
+    ref: Path
     db: Path
 }
 
@@ -46,20 +48,25 @@ workflow {
         FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
     )
 
-    // use revica-strm to select appropriate reference genomes
-    REFERENCE_PREP (
-        PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired,
-        file(params.db),
-        false
-    )
+    // if a reference genome is not provided, select with revica-strm and combine
+    // with umi-extracted FASTQs. otherwise, use provided reference.
+    if (!params.provide_ref) {    
+        REFERENCE_PREP (
+            PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired,
+            file(params.db),
+            false
+        )
 
-    // pair umi-extracted FASTQs with selected reference genomes for alignment
-    revica_ch = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
-        .combine(REFERENCE_PREP.out.ref, by: 0)
-        .map {meta, reads, ref_info, ref -> tuple(meta, reads, ref, ref_info)}
+        bwa_align_ch = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
+            .combine(REFERENCE_PREP.out.ref, by: 0)
+            .map {meta, reads, ref_info, ref -> tuple(meta, reads, ref, ref_info)}
+    } else {
+        bwa_align_ch = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
+            .map {meta, reads -> tuple(meta, reads, file(params.ref), null)}
+    }
 
     BWA_ALIGN_FASTQ(
-        revica_ch
+        bwa_align_ch
     )
 
     // combine each aligned BAM with the correct UMI-extracted bam from Twist step 2 
