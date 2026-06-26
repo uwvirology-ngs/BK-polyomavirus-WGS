@@ -34,10 +34,16 @@ nextflow run main.nf \
 |---------|---------|---------|
 | `--samplesheet` | samplesheet | /assets/samplesheet.csv |
 
-### Optional Parameters
+### Optional Parameters - Twist
 | Parameter | About | Default |
 |---------|---------|---------|
-| `--db` | multifasta with varied BK Polyomavirus genotypes | /assets/ref.fa |
+| `--provide_ref` | whether to directly provide a reference | false |
+| `--ref` | reference genome | null |
+
+### Optional Parameters - Revica-strm
+| Parameter | About | Default |
+|---------|---------|---------|
+| `--db` | multifasta database of reference genomes | /assets/bkv_multi.fa |
 | `--ref_min_depth` | minimum sequencing depth | 3 |
 | `--ref_min_cov` | minimum coverage | 30 |
 
