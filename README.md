@@ -32,7 +32,7 @@ nextflow run main.nf \
 ### Required Parameters
 | Parameter | About | Example |
 |---------|---------|---------|
-| `--samplesheet` | samplesheet | /assets/samplesheet.csv |
+| `--input` | samplesheet | /assets/samplesheet.csv |
 
 ### Optional Parameters - Twist
 | Parameter | About | Default |

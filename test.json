@@ -1,4 +1,4 @@
 {
-    "samplesheet": "${projectDir}/assets/samplesheet.csv",
+    "input": "${projectDir}/assets/samplesheet.csv",
     "output": "test-output"
 }

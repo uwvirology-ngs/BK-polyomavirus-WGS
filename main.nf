@@ -4,7 +4,7 @@
  * Parameters
  */
 params {
-    samplesheet: Path
+    input: Path
     provide_ref: Boolean
     ref: Path
     db: Path
@@ -33,7 +33,7 @@ workflow {
     
     main:
     READ_SAMPLESHEET(
-        params.samplesheet
+        params.input
     )
 
     PICARD_FASTQ_TO_SAM (
