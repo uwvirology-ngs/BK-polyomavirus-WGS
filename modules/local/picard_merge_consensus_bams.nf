@@ -15,7 +15,9 @@ process PICARD_MERGE_CONSENSUS_BAMS {
 
     script:
     """
-    samtools dict ${ref} > ${ref.baseName}.dict
+    picard CreateSequenceDictionary \\
+        R=${ref}
+        O="${ref.baseName}.dict"
 
     picard MergeBamAlignment \\
         UNMAPPED=${unaligned_consensus_bam} \\
