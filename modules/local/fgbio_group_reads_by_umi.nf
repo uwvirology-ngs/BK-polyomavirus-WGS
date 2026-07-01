@@ -12,6 +12,7 @@ process FGBIO_GROUP_READS_BY_UMI {
 
     output:
     tuple val(meta), path("*.bam"), path(ref),  emit: grouped_bam
+    tuple val(meta), path("*histogram.txt"),    emit: grouped_hist
 
     script:
     """
@@ -21,6 +22,7 @@ process FGBIO_GROUP_READS_BY_UMI {
         --output="${ref.simpleName}_grouped.bam" \\
         --raw-tag=RX \\
         --min-map-q=10 \\
-        --edits=1
+        --edits=1 \\
+        --family-size-histogram="${ref.simpleName}_histogram.txt"
     """
 }

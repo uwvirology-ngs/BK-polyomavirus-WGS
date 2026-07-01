@@ -107,6 +107,7 @@ workflow {
     aligned_umi_extracted_bam       = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
     merged_bam                      = PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
     grouped_bam                     = FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
+    grouped_hist                    = FGBIO_GROUP_READS_BY_UMI.out.grouped_hist
     unaligned_consensus_bam         = FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
     aligned_consensus_bam           = ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam
     final_consensus_bam             = PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam
@@ -132,7 +133,10 @@ output {
         path 'picard_merge_bam_alignment'
     }
     grouped_bam {
-        path 'picard_group_reads_by_umi'
+        path 'picard_group_reads_by_umi/bam'
+    }
+    grouped_hist {
+        path 'picard_group_reads_by_umi/hist'
     }
     unaligned_consensus_bam {
         path 'fgbio_call_duplex_consensus_reads'
