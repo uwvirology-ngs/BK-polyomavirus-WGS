@@ -37,6 +37,7 @@ nextflow run main.nf \
 ### Optional Parameters - Twist
 | Parameter | About | Default |
 |---------|---------|---------|
+| `--output` | output directory | results |
 | `--provide_ref` | whether to directly provide a reference | false |
 | `--ref` | reference genome | null |
 
