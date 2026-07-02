@@ -10,6 +10,7 @@
 process PICARD_SAM_TO_FASTQ {
 
     label 'twist'
+    label 'process_high'
 
     input:
     tuple val(meta), path(unaligned_bam_umi_extracted)
@@ -21,6 +22,7 @@ process PICARD_SAM_TO_FASTQ {
     script:
     """
     picard SamToFastq \\
+        -Xmx10g \\
         I="${unaligned_bam_umi_extracted}" \\
         F="${meta.id}_umi_extracted_interleaved.fastq" \\
         INTERLEAVE=true

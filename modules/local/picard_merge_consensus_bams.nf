@@ -6,6 +6,7 @@
 process PICARD_MERGE_CONSENSUS_BAMS {
 
     label 'twist'
+    label 'process_high'
 
     input:
     tuple val(meta), path(unaligned_consensus_bam), path(aligned_consensus_bam), path(ref)
@@ -20,6 +21,7 @@ process PICARD_MERGE_CONSENSUS_BAMS {
         O="${ref.baseName}.dict"
 
     picard MergeBamAlignment \\
+        -Xmx10g \\
         UNMAPPED=${unaligned_consensus_bam} \\
         ALIGNED=${aligned_consensus_bam} \\
         O="${ref.simpleName}_merged_no_read_group_consensus.bam" \\

@@ -6,6 +6,7 @@
 process BWA_ALIGN_FASTQ {
 
     label 'twist'
+    label 'process_high'
 
     input: 
     tuple val(meta), path(reads), path(ref), val(ref_info)

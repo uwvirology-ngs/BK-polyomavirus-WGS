@@ -7,6 +7,7 @@
 process FGBIO_CALL_DUPLEX_CONSENSUS_READS {
 
     label 'twist'
+    label 'process_high'
 
     input:
     tuple val(meta), path(grouped_bam), path(ref)
@@ -17,6 +18,7 @@ process FGBIO_CALL_DUPLEX_CONSENSUS_READS {
     script:
     """
     fgbio CallDuplexConsensusReads \\
+        -Xmx10g \\
         --input=${grouped_bam} \\
         --output="${ref.simpleName}_unaligned_consensus.bam" \\
         --error-rate-pre-umi=45 \\

@@ -6,6 +6,7 @@
 process ALIGN_DUPLEX_CONSENSUS_READS {
 
     label 'twist'
+    label 'process_high'
 
     input:
     tuple val(meta), path(unaligned_consensus_bam), path(ref)

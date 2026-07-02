@@ -7,6 +7,7 @@
 process FGBIO_EXTRACT_UMIS_FROM_BAM {
 
     label 'twist'
+    label 'process_high'
 
     input:
     tuple val(meta), path(unaligned_bam)
@@ -17,6 +18,7 @@ process FGBIO_EXTRACT_UMIS_FROM_BAM {
     script:
     """
     fgbio ExtractUmisFromBam \\
+        -Xmx10g \\
         --input="${unaligned_bam}" \\
         --output="${meta.id}_umi_extracted.bam" \\
         --read-structure=5M2S+T 5M2S+T \\

@@ -7,6 +7,7 @@
 process PICARD_MERGE_BAM_ALIGNMENT {
 
     label 'twist'
+    label 'process_high'
 
     input:
     tuple val(meta), path(aligned_bam), path(ref), path(umi_extracted_bam)
@@ -19,6 +20,7 @@ process PICARD_MERGE_BAM_ALIGNMENT {
     samtools dict ${ref} > ${ref.baseName}.dict
 
     picard MergeBamAlignment \\
+        -Xmx10g \\
         UNMAPPED=${umi_extracted_bam} \\
         ALIGNED=${aligned_bam} \\
         O="${ref.simpleName}_merged.bam" \\

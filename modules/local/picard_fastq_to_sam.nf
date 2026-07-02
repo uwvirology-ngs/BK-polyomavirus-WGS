@@ -7,6 +7,7 @@
 process PICARD_FASTQ_TO_SAM {
 
     label 'twist'
+    label 'process_high'
 
     input:
     tuple val(meta), path(reads)
@@ -17,6 +18,7 @@ process PICARD_FASTQ_TO_SAM {
     script:
     """
     picard FastqToSam \\
+        -Xmx10g \\
         O="${meta.id}_unaligned.bam" \\
         F1=${meta.id}_R1.fastq.gz \\
         F2=${meta.id}_R2.fastq.gz \\

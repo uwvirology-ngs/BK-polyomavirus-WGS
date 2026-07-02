@@ -6,6 +6,7 @@
 process FGBIO_GROUP_READS_BY_UMI {
 
     label 'twist'
+    label 'process_high'
 
     input:
     tuple val(meta), path(merged_bam), path(ref)
@@ -17,6 +18,7 @@ process FGBIO_GROUP_READS_BY_UMI {
     script:
     """
     fgbio GroupReadsByUmi \\
+        -Xmx10g \\
         --strategy="paired" \\
         --input=${merged_bam} \\
         --output="${ref.simpleName}_grouped.bam" \\
