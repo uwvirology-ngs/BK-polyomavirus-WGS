@@ -8,6 +8,10 @@
 
 Whole genome sequencing for BK polyomavirus
 
+## Workflow
+
+<img src="./assets/img/bkv_workflow.drawio.png">
+
 ## Requirements
 
 This pipeline is developed on Ubuntu 26.04 LTS with Nextflow v26.04.4+ and Docker v29.6.1+. 
