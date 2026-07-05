@@ -1,12 +1,15 @@
 # BK-polyomavirus-WGS
 
+[![Nextflow](https://img.shields.io/badge/version-%E2%89%A526.04.4-green?style=flat&logo=nextflow&logoColor=white&color=%230DC09D&link=https%3A%2F%2Fnextflow.io)](https://www.nextflow.io/)
+[![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
+
 ## Description
 
 Whole genome sequencing for BK polyomavirus
 
 ## Requirements
 
-This pipeline is developed and tested on Ubuntu 24.04 LTS with Nextflow version 25.10.4+ and Docker v29.3.1+. Compatibility is expected with releases greater than or equal in version number.
+This pipeline is developed on Ubuntu 26.04 LTS with Nextflow v26.04.4+ and Docker v29.6.1+. 
 
 Install [`Nextflow`](https://www.nextflow.io/docs/latest/install.html)
 
