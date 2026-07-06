@@ -37,7 +37,7 @@ nextflow run main.nf \
 
 ### Run latest GitHub version on AWS:
 ```bash
-nextflow run uwvirology-ngs/bk-polyomavirus-wgs -r main -latest \
+NXF_VER=26.04.4 nextflow run uwvirology-ngs/bk-polyomavirus-wgs -r main -latest \
     --input your_samplesheet.csv \
     --output your_output_directory \
     -profile awsbatch \
