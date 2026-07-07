@@ -16,9 +16,15 @@ process PICARD_FASTQ_TO_SAM {
     tuple val(meta), path("${meta.id}_unaligned.bam"),  emit: unaligned_bam
 
     script:
+    def avail_mem = 8
+    if (task.memory) {
+        avail_mem = task.memory.toGiga()
+    }
+    avail_mem -= 2
+    
     """
     picard FastqToSam \\
-        -Xmx10g \\
+        -Xmx${avail_mem}g \\
         O="${meta.id}_unaligned.bam" \\
         F1=${meta.id}_R1.fastq.gz \\
         F2=${meta.id}_R2.fastq.gz \\

@@ -16,9 +16,15 @@ process FGBIO_EXTRACT_UMIS_FROM_BAM {
     tuple val(meta), path("${meta.id}_umi_extracted.bam"),  emit: umi_extracted_bam
 
     script:
+    def avail_mem = 8
+    if (task.memory) {
+        avail_mem = task.memory.toGiga()
+    }
+    avail_mem -= 2
+
     """
     fgbio ExtractUmisFromBam \\
-        -Xmx10g \\
+        -Xmx${avail_mem}g \\
         --input="${unaligned_bam}" \\
         --output="${meta.id}_umi_extracted.bam" \\
         --read-structure=5M2S+T 5M2S+T \\

@@ -16,9 +16,15 @@ process FGBIO_GROUP_READS_BY_UMI {
     tuple val(meta), path("*histogram.txt"),    emit: grouped_hist
 
     script:
+    def avail_mem = 8
+    if (task.memory) {
+        avail_mem = task.memory.toGiga()
+    }
+    avail_mem -= 2
+
     """
     fgbio GroupReadsByUmi \\
-        -Xmx10g \\
+        -Xmx${avail_mem}g \\
         --strategy="paired" \\
         --input=${merged_bam} \\
         --output="${ref.simpleName}_grouped.bam" \\

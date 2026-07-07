@@ -16,9 +16,15 @@ process FGBIO_CALL_DUPLEX_CONSENSUS_READS {
     tuple val(meta), path("*.bam"), path(ref),  emit: unaligned_consensus_bam
 
     script:
+    def avail_mem = 8
+    if (task.memory) {
+        avail_mem = task.memory.toGiga()
+    }
+    avail_mem -= 2
+    
     """
     fgbio CallDuplexConsensusReads \\
-        -Xmx10g \\
+        -Xmx${avail_mem}g \\
         --input=${grouped_bam} \\
         --output="${ref.simpleName}_unaligned_consensus.bam" \\
         --error-rate-pre-umi=45 \\

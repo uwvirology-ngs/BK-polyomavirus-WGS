@@ -20,9 +20,15 @@ process PICARD_SAM_TO_FASTQ {
     tuple val(meta), path("${meta.id}_umi_extracted_R*"),   emit: umi_extracted_fastq_paired
 
     script:
+    def avail_mem = 8
+    if (task.memory) {
+        avail_mem = task.memory.toGiga()
+    }
+    avail_mem -= 2
+    
     """
     picard SamToFastq \\
-        -Xmx10g \\
+        -Xmx${avail_mem}g \\
         I="${unaligned_bam_umi_extracted}" \\
         F="${meta.id}_umi_extracted_interleaved.fastq" \\
         INTERLEAVE=true

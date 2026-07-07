@@ -16,11 +16,17 @@ process PICARD_MERGE_BAM_ALIGNMENT {
     tuple val(meta), path("*.bam"), path(ref),  emit: merged_bam
 
     script:
+    def avail_mem = 8
+    if (task.memory) {
+        avail_mem = task.memory.toGiga()
+    }
+    avail_mem -= 2
+    
     """
     samtools dict ${ref} > ${ref.baseName}.dict
 
     picard MergeBamAlignment \\
-        -Xmx10g \\
+        -Xmx${avail_mem}g \\
         UNMAPPED=${umi_extracted_bam} \\
         ALIGNED=${aligned_bam} \\
         O="${ref.simpleName}_merged.bam" \\

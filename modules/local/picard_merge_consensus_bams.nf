@@ -15,13 +15,19 @@ process PICARD_MERGE_CONSENSUS_BAMS {
     tuple val(meta), path("*_consensus_aligned_merged.bam"), path(ref),     emit: final_consensus_bam
 
     script:
+    def avail_mem = 8
+    if (task.memory) {
+        avail_mem = task.memory.toGiga()
+    }
+    avail_mem -= 2
+    
     """
     picard CreateSequenceDictionary \\
         R=${ref}
         O="${ref.baseName}.dict"
 
     picard MergeBamAlignment \\
-        -Xmx10g \\
+        -Xmx${avail_mem}g \\
         UNMAPPED=${unaligned_consensus_bam} \\
         ALIGNED=${aligned_consensus_bam} \\
         O="${ref.simpleName}_merged_no_read_group_consensus.bam" \\
