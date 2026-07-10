@@ -1,6 +1,6 @@
 {
     "input": "${projectDir}/assets/samplesheet_single.csv",
-    "output": "test-output",
+    "output": "example-output",
     "provide_ref": true,
     "ref": "${projectDir}/assets/references/PQ859676.1.fa"
 }
