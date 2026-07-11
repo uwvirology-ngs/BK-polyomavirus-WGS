@@ -1,7 +1,9 @@
 # BK-polyomavirus-WGS
 
 [![UW DLMP](https://img.shields.io/badge/dev-UW_Medicine-32006e)](https://dlmp.uw.edu/)
-[![Nextflow](https://img.shields.io/badge/version-%E2%89%A526.04.4-green?style=flat&logo=nextflow&logoColor=white&color=%230DC09D&link=https%3A%2F%2Fnextflow.io)](https://www.nextflow.io/)
+[![Nextflow](https://img.shields.io/badge/version-%E2%89%A526.04.6-green?style=flat&logo=nextflow&logoColor=white&color=%230DC09D&link=https%3A%2F%2Fnextflow.io)](https://www.nextflow.io/)
+[![nf-test](https://img.shields.io/badge/unit_tests-nf--test-337ab7.svg)](https://www.nf-test.com)
+[![GitHub Actions CI Status](https://github.com/uwvirology-ngs/BK-polyomavirus-WGS/actions/workflows/ci-tests.yml/badge.svg)](https://github.com/uwvirology-ngs/BK-polyomavirus-WGS/actions/workflows/ci-tests.yml)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 
 ## Description
