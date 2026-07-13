@@ -1,6 +1,14 @@
 name: CI Tests
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '30 4 * * *'
+      timezone: 'America/Los_Angeles'
+  workflow_dispatch:
 
 jobs:
   test:
