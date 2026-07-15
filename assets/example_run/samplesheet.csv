@@ -1,0 +1,5 @@
+sample,fastq_1,fastq_2
+UBKP10000151,assets/example_run/fastqs/UBKP10000151_R1.fastq.gz,assets/example_run/fastqs/UBKP10000151_R2.fastq.gz
+UBKP10000194,assets/example_run/fastqs/UBKP10000194_R1.fastq.gz,assets/example_run/fastqs/UBKP10000194_R2.fastq.gz
+UBKP10000246,assets/example_run/fastqs/UBKP10000246_R1.fastq.gz,assets/example_run/fastqs/UBKP10000246_R2.fastq.gz
+UBKP10000252,assets/example_run/fastqs/UBKP10000252_R1.fastq.gz,assets/example_run/fastqs/UBKP10000252_R2.fastq.gz

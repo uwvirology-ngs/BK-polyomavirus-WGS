@@ -28,13 +28,7 @@ Install [`Docker`](https://docs.docker.com/engine/install/)
 
 ```bash
 nextflow run main.nf \
-    -params-file test.json
-```
-
-### Run Test (One Sample): 
-```bash
-nextflow run main.nf \
-    -params-file test_single.json
+    -params-file assets/example_run/params.json
 ```
 
 ### Run latest GitHub version on AWS:
