@@ -8,7 +8,9 @@
 
 ## Description
 
-Whole genome sequencing for BK polyomavirus
+Analyze sequencing libraries prepared with the Twist Unique Molecular Identifier (UMI) Adapter System.
+
+Here we implement the data analysis guideline provided by [Twist Bioscience](https://www.twistbioscience.com/) for processing sequencing data prepared with their [UMI adapter system](https://www.twistbioscience.com/products/ngs/library-preparation/twist-umi-adapter-system) and incorporate automated reference genome selection. 
 
 ## Workflow
 
@@ -16,7 +18,7 @@ Whole genome sequencing for BK polyomavirus
 
 ## Requirements
 
-This pipeline is developed on Ubuntu 26.04 LTS with Nextflow v26.04.4+ and Docker v29.6.1+. 
+This pipeline is tested with [nf-test](https://www.nf-test.com/) on Ubuntu 26.04 LTS with Nextflow v26.04.6+ and Docker v29.4.2. 
 
 Install [`Nextflow`](https://www.nextflow.io/docs/latest/install.html)
 
@@ -24,16 +26,35 @@ Install [`Docker`](https://docs.docker.com/engine/install/)
 
 ## Usage
 
-### Run Test:
+### Reference Selection
+
+By default, a reference genome is selected from a database of BK Polyomavirus (BKPyV) genomes, however any multifasta may be provided on the command line as a database. Alternatively, automated selection can be entirely circumvented by specifying a reference genome directly. 
+
+These default settings stem from this pipeline's first application: analyzing BKPyV genomes. 
+
+### Example Run
+
+An example dataset is provided for users to try out the pipeline locally. To run the example, first clone this repository, then execute the following command in the project root directory: 
 
 ```bash
 nextflow run main.nf \
     -params-file assets/example_run/params.json
 ```
 
-### Run latest GitHub version on AWS:
+### Integration with Amazon Web Services
+
+A profile is included for pipeline execution with [awsbatch](https://docs.seqera.io/nextflow/executor#aws-batch). This profile is intended for users at the University of Washington but can be used freely, though we suggest tuning the resource limits to your HPC specs. [Fusion file system](https://docs.seqera.io/fusion) is enabled here. Consequently, an API token from [Seqera Platform](https://cloud.seqera.io) is required to run with this profile. 
+
+Once generated, this token can be defined in your `.bashrc` file for convenience:
+
 ```bash
-NXF_VER=26.04.4 nextflow run uwvirology-ngs/bk-polyomavirus-wgs -r main -latest \
+export TOWER_ACCESS_TOKEN="your_token_here"
+```
+
+For reference, here is a minimal example command for execution with awsbatch:
+
+```bash
+nextflow run uwvirology-ngs/bk-polyomavirus-wgs -r main -latest \
     --input your_samplesheet.csv \
     --output your_output_directory \
     -profile awsbatch \
