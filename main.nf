@@ -72,7 +72,7 @@ workflow {
     // and record the reference genome used in metadata
     merged_bams_ch = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
         .combine(FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam, by: 0)
-        .map { meta, bam1, ref, bam2 -> tuple(meta + [ref: ref.baseName], bam1, ref, bam2) }
+        .map { meta, bam1, ref, ref_info, bam2 -> tuple(meta + [pair_name: ref.baseName], bam1, ref, ref_info, bam2) }
 
     PICARD_MERGE_BAM_ALIGNMENT(
         merged_bams_ch
@@ -92,7 +92,7 @@ workflow {
 
     consensus_ch = FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
         .join(ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam)
-        .map { meta, bam1, ref1, bam2, _ref2 -> tuple(meta, bam1, bam2, ref1) }
+        .map { meta, bam1, ref1, ref_info1, bam2, _ref2, _ref_info2 -> tuple(meta, bam1, bam2, ref1, ref_info1) }
 
     PICARD_MERGE_CONSENSUS_BAMS (
         consensus_ch

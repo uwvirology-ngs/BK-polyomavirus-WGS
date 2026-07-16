@@ -10,10 +10,10 @@ process FGBIO_CALL_DUPLEX_CONSENSUS_READS {
     label 'process_high'
 
     input:
-    tuple val(meta), path(grouped_bam), path(ref)
+    tuple val(meta), path(grouped_bam), path(ref), val(ref_info)
 
     output:
-    tuple val(meta), path("*.bam"), path(ref),  emit: unaligned_consensus_bam
+    tuple val(meta), path("*.bam"), path(ref), val(ref_info),  emit: unaligned_consensus_bam
 
     script:
     def avail_mem = 8

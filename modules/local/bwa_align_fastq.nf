@@ -12,7 +12,7 @@ process BWA_ALIGN_FASTQ {
     tuple val(meta), path(reads), path(ref), val(ref_info)
 
     output: 
-    tuple val(meta), path("*.bam"), path(ref),  emit: aligned_umi_extracted_bam
+    tuple val(meta), path("*.bam"), path(ref), val(ref_info),   emit: aligned_umi_extracted_bam
 
     script: 
     """

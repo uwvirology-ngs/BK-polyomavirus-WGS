@@ -9,11 +9,11 @@ process FGBIO_GROUP_READS_BY_UMI {
     label 'process_high'
 
     input:
-    tuple val(meta), path(merged_bam), path(ref)
+    tuple val(meta), path(merged_bam), path(ref), val(ref_info)
 
     output:
-    tuple val(meta), path("*.bam"), path(ref),  emit: grouped_bam
-    tuple val(meta), path("*histogram.txt"),    emit: grouped_hist
+    tuple val(meta), path("*.bam"), path(ref), val(ref_info),  emit: grouped_bam
+    tuple val(meta), path("*histogram.txt"),                    emit: grouped_hist
 
     script:
     def avail_mem = 8
