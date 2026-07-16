@@ -7,7 +7,7 @@ nextflow_pipeline {
 
         when {
             params {
-                input = "${projectDir}/assets/samplesheet.csv"
+                input = "${projectDir}/assets/example_run/samplesheet.csv"
             }
         }
 
