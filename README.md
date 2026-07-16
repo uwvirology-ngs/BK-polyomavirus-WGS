@@ -67,15 +67,14 @@ nextflow run uwvirology-ngs/bk-polyomavirus-wgs -r main -latest \
 | Parameter | About | Example |
 |---------|---------|---------|
 | `--input` | samplesheet | /assets/samplesheet.csv |
+| `--output` | output directory | results |
 
-### Optional Parameters - Twist
+### Optional Parameters - Twist UMI Workflow
 | Parameter | About | Default |
 |---------|---------|---------|
-| `--output` | output directory | results |
-| `--provide_ref` | whether to directly provide a reference | false |
 | `--ref` | reference genome | null |
 
-### Optional Parameters - Revica-strm
+### Optional Parameters - Reference Selection
 | Parameter | About | Default |
 |---------|---------|---------|
 | `--db` | multifasta database of reference genomes | /assets/bkv_multi.fa |

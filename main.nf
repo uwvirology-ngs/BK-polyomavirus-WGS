@@ -5,7 +5,6 @@
  */
 params {
     input: Path
-    provide_ref: Boolean
     ref: Path
     db: Path
 }
@@ -50,7 +49,7 @@ workflow {
 
     // if a reference genome is not provided, select with revica-strm and combine
     // with umi-extracted FASTQs. otherwise, use provided reference.
-    if (!params.provide_ref) {    
+    if (params.ref == null) {    
         REFERENCE_PREP (
             PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired,
             file(params.db),
