@@ -14,6 +14,10 @@ jobs:
   test:
     runs-on: ubuntu-26.04
 
+    strategy:
+      matrix:
+        nextflow_version: ['26.04.6', 'latest']
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -27,7 +31,7 @@ jobs:
       - name: Install Nextflow
         uses: nf-core/setup-nextflow@v3
         with:
-          version: '26.04.6'
+          version: '${{ matrix.nextflow_version }}'
 
       - name: Install nf-test
         run: |
