@@ -27,6 +27,7 @@ include { FGBIO_GROUP_READS_BY_UMI          } from './modules/local/fgbio_group_
 include { FGBIO_CALL_DUPLEX_CONSENSUS_READS } from './modules/local/fgbio_call_duplex_consensus_reads.nf'
 include { ALIGN_DUPLEX_CONSENSUS_READS      } from './modules/local/align_duplex_consensus_reads.nf'
 include { PICARD_MERGE_CONSENSUS_BAMS       } from './modules/local/picard_merge_consensus_bams.nf'
+include { BUILD_ALIGNMENT_SUMMARY           } from './modules/local/build_alignment_summary.nf'
 
 workflow {
     
@@ -98,6 +99,14 @@ workflow {
         consensus_ch
     )
 
+    summary_ch = PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
+        .join(PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam)
+        .map { meta, bam1, ref1, ref_info1, bam2, _ref2, _ref_info2 -> tuple(meta, bam1, bam2, ref1, ref_info1) }
+
+    BUILD_ALIGNMENT_SUMMARY (
+        summary_ch
+    )
+
     publish:
     unaligned_bam                   = PICARD_FASTQ_TO_SAM.out.unaligned_bam
     umi_extracted_bam               = FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
@@ -110,6 +119,7 @@ workflow {
     unaligned_consensus_bam         = FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
     aligned_consensus_bam           = ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam
     final_consensus_bam             = PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam
+    alignment_summary               = BUILD_ALIGNMENT_SUMMARY.out.alignment_summary
 }
 
 output {
@@ -145,5 +155,8 @@ output {
     }
     final_consensus_bam {
         path 'picard_merge_consensus_bams'
+    }
+    alignment_summary {
+        path 'run_summary/alignment_summary'
     }
 }
