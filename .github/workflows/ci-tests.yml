@@ -39,4 +39,4 @@ jobs:
           sudo mv nf-test /usr/local/bin/
 
       - name: Run Tests
-        run: nf-test test --ci
+        run: nf-test test --ci --verbose
