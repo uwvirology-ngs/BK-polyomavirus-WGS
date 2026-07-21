@@ -14,7 +14,7 @@ process BUILD_ALIGNMENT_SUMMARY {
 
     script:
     """
-    # 1. sample name
+    # 1. sample info
     sample_name="${meta.id}"
 
     # 2. reference info
@@ -22,25 +22,25 @@ process BUILD_ALIGNMENT_SUMMARY {
     ref_tag="${ref_info.tag}"
     ref_header="${ref_info.header}"
 
-    # 3. raw reads
+    # 3. mapping stats
     raw_reads=\$(samtools view -c ${merged_bam})
-    
-    # 4. mapping stats
     mapped_reads=\$(samtools view -c -F 4 ${merged_bam})
+    
     x100_reads_mapped=\$(echo "\$mapped_reads * 100" | bc)
     pct_reads_mapped=\$(echo "scale=2; \$x100_reads_mapped / \$raw_reads" | bc)
 
-    # 5. mean depth
-    mean_depth=\$(samtools depth ${merged_bam} | awk '{accum+=\$3} END {print accum/NR}')
+    # 4. coverage stats
+    mean_depth=\$(samtools coverage ${merged_bam} | awk 'NR==2 {print \$7}')
+    coverage=\$(samtools coverage ${merged_bam} | awk 'NR==2 {print \$6}')
 
     # build output .tsv
     {
-        printf "sample_name\tref_acc\tref_tag\tref_header\traw_reads\tmapped_reads\tpct_reads_mapped\tmean_depth\n"
-        printf "%s\t%s\t%s\t%s\t%s\t%s\n" \
+        printf "sample_name\tref_acc\tref_tag\tref_header\traw_reads\tmapped_reads\tpct_reads_mapped\tmean_depth\tcoverage\n"
+        printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
             "\$sample_name" \
             "\$ref_acc" "\$ref_tag" "\$ref_header" \
             "\$raw_reads" "\$mapped_reads" "\$pct_reads_mapped" \
-            "\$mean_depth"
+            "\$mean_depth" "\$coverage"
     } > "${ref.baseName}.tsv"
     """
 }
