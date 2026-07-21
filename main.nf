@@ -28,6 +28,7 @@ include { FGBIO_CALL_DUPLEX_CONSENSUS_READS } from './modules/local/fgbio_call_d
 include { ALIGN_DUPLEX_CONSENSUS_READS      } from './modules/local/align_duplex_consensus_reads.nf'
 include { PICARD_MERGE_CONSENSUS_BAMS       } from './modules/local/picard_merge_consensus_bams.nf'
 include { BUILD_ALIGNMENT_SUMMARY           } from './modules/local/build_alignment_summary.nf'
+include { BUILD_RUN_SUMMARY                 } from './modules/local/build_run_summary.nf'
 
 workflow {
     
@@ -99,12 +100,20 @@ workflow {
         consensus_ch
     )
 
-    summary_ch = PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
+    alignment_summary_ch = PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
         .join(PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam)
         .map { meta, bam1, ref1, ref_info1, bam2, _ref2, _ref_info2 -> tuple(meta, bam1, bam2, ref1, ref_info1) }
 
     BUILD_ALIGNMENT_SUMMARY (
-        summary_ch
+        alignment_summary_ch
+    )
+
+    run_summary_ch = BUILD_ALIGNMENT_SUMMARY.out.alignment_summary
+        .map { _meta, tsv -> tsv }
+        .collect()
+
+    BUILD_RUN_SUMMARY (
+        run_summary_ch
     )
 
     publish:
@@ -120,6 +129,7 @@ workflow {
     aligned_consensus_bam           = ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam
     final_consensus_bam             = PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam
     alignment_summary               = BUILD_ALIGNMENT_SUMMARY.out.alignment_summary
+    run_summary                     = BUILD_RUN_SUMMARY.out.run_summary
 }
 
 output {
@@ -157,6 +167,9 @@ output {
         path 'picard_merge_consensus_bams'
     }
     alignment_summary {
-        path 'run_summary/alignment_summary'
+        path 'summaries/alignment_summary'
+    }
+    run_summary {
+        path 'summaries/run_summary'
     }
 }
