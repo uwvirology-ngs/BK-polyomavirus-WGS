@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        nextflow_version: ['26.04.6', 'latest']
+        nextflow_version: ['26.04.6', 'latest-everything']
 
     steps:
       - name: Checkout
