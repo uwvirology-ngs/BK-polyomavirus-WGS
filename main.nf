@@ -12,8 +12,9 @@ params {
 /*
  * Subworkflows
  */
-include { READ_SAMPLESHEET } from './subworkflows/local/read_samplesheet.nf'
-include { REFERENCE_PREP   } from './subworkflows/revica/reference_prep'
+include { READ_SAMPLESHEET   } from './subworkflows/local/read_samplesheet.nf'
+include { REFERENCE_PREP     } from './subworkflows/revica/reference_prep.nf'
+include { CONSENSUS_ASSEMBLY } from './subworkflows/revica/consensus_assembly.nf'
 
 /*
  * Modules
@@ -65,6 +66,12 @@ workflow {
         bwa_align_ch = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
             .map {meta, reads -> tuple(meta, reads, file(params.ref), null)}
     }
+
+    CONSENSUS_ASSEMBLY (
+        REFERENCE_PREP.out.reads,
+        REFERENCE_PREP.out.ref,
+        false
+    )
 
     BWA_ALIGN_FASTQ(
         bwa_align_ch
