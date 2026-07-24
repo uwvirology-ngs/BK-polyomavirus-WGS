@@ -1,0 +1,19 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+##sequence-region PX257737.1 1 4760
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=1891762
+PX257737.1	Genbank	region	1	4760	.	+	.	ID=PX257737.1:1..4760;Dbxref=taxon:1891762;collection-date=2016/2020;country=France;gbkey=Src;genome=genomic;genotype=III;isolate=P25_Plasma_M3;mol_type=genomic DNA;nat-host=Homo sapiens
+PX257737.1	Genbank	gene	18	218	.	+	.	ID=gene-BKPyVgp1;Name=BKPyVgp1;gbkey=Gene;gene_biotype=protein_coding;locus_tag=BKPyVgp1
+PX257737.1	Genbank	CDS	18	218	.	+	0	ID=cds-YAI72407.1;Parent=gene-BKPyVgp1;Dbxref=NCBI_GP:YAI72407.1;Name=YAI72407.1;gbkey=CDS;locus_tag=BKPyVgp1;product=agnoprotein;protein_id=YAI72407.1
+PX257737.1	Genbank	gene	253	1308	.	+	.	ID=gene-BKPyVgp2;Name=BKPyVgp2;gbkey=Gene;gene_biotype=protein_coding;locus_tag=BKPyVgp2
+PX257737.1	Genbank	CDS	253	1308	.	+	0	ID=cds-YAI72405.1;Parent=gene-BKPyVgp2;Dbxref=NCBI_GP:YAI72405.1;Name=YAI72405.1;gbkey=CDS;locus_tag=BKPyVgp2;product=VP2;protein_id=YAI72405.1
+PX257737.1	Genbank	gene	1193	2281	.	+	.	ID=gene-BKPyVgp4;Name=BKPyVgp4;gbkey=Gene;gene_biotype=protein_coding;locus_tag=BKPyVgp4
+PX257737.1	Genbank	CDS	1193	2281	.	+	0	ID=cds-YAI72404.1;Parent=gene-BKPyVgp4;Dbxref=NCBI_GP:YAI72404.1;Name=YAI72404.1;gbkey=CDS;locus_tag=BKPyVgp4;product=VP1;protein_id=YAI72404.1
+PX257737.1	Genbank	gene	2351	4760	.	-	.	ID=gene-BKPyVgp5;Name=BKPyVgp5;end_range=4760,.;gbkey=Gene;gene_biotype=protein_coding;locus_tag=BKPyVgp5;partial=true
+PX257737.1	Genbank	CDS	4530	4760	.	-	0	ID=cds-YAI72403.1;Parent=gene-BKPyVgp5;Dbxref=NCBI_GP:YAI72403.1;Name=YAI72403.1;end_range=4760,.;gbkey=CDS;locus_tag=BKPyVgp5;partial=true;product=large T antigen;protein_id=YAI72403.1
+PX257737.1	Genbank	CDS	2351	4183	.	-	0	ID=cds-YAI72403.1;Parent=gene-BKPyVgp5;Dbxref=NCBI_GP:YAI72403.1;Name=YAI72403.1;gbkey=CDS;locus_tag=BKPyVgp5;partial=true;product=large T antigen;protein_id=YAI72403.1
+PX257737.1	Genbank	intron	4184	4529	.	-	.	ID=id-BKPyVgp5;Parent=gene-BKPyVgp5;Note=putative IVS for large T antigen;gbkey=intron;locus_tag=BKPyVgp5
+PX257737.1	Genbank	gene	4254	4742	.	-	.	ID=gene-BKPyVgp6;Name=BKPyVgp6;gbkey=Gene;gene_biotype=protein_coding;locus_tag=BKPyVgp6
+PX257737.1	Genbank	CDS	4254	4742	.	-	0	ID=cds-YAI72406.1;Parent=gene-BKPyVgp6;Dbxref=NCBI_GP:YAI72406.1;Name=YAI72406.1;gbkey=CDS;locus_tag=BKPyVgp6;product=small T antigen;protein_id=YAI72406.1
+

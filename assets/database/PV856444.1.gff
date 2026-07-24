@@ -1,0 +1,14 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+##sequence-region PV856444.1 1 4766
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=1891762
+PV856444.1	Genbank	region	1	4766	.	+	.	ID=PV856444.1:1..4766;Dbxref=taxon:1891762;collection-date=Sep-2021;country=France;gbkey=Src;genome=genomic;genotype=Ia;isolate=HSCT16;isolation-source=urine;mol_type=genomic DNA;nat-host=Homo sapiens
+PV856444.1	Genbank	CDS	1	201	.	+	0	ID=cds-XXJ44559.1;Dbxref=NCBI_GP:XXJ44559.1;Name=XXJ44559.1;Note=BKPyVgp1;gbkey=CDS;product=agnoprotein;protein_id=XXJ44559.1
+PV856444.1	Genbank	CDS	237	1292	.	+	0	ID=cds-XXJ44561.1;Dbxref=NCBI_GP:XXJ44561.1;Name=XXJ44561.1;Note=BKPyVgp2;gbkey=CDS;product=VP2;protein_id=XXJ44561.1
+PV856444.1	Genbank	CDS	594	1292	.	+	0	ID=cds-XXJ44560.1;Dbxref=NCBI_GP:XXJ44560.1;Name=XXJ44560.1;Note=BKPyVgp3;gbkey=CDS;product=VP3;protein_id=XXJ44560.1
+PV856444.1	Genbank	CDS	1177	2265	.	+	0	ID=cds-XXJ44562.1;Dbxref=NCBI_GP:XXJ44562.1;Name=XXJ44562.1;Note=BKPyVgp4;gbkey=CDS;product=VP1;protein_id=XXJ44562.1
+PV856444.1	Genbank	CDS	4524	4766	.	-	0	ID=cds-XXJ44563.1;Dbxref=NCBI_GP:XXJ44563.1;Name=XXJ44563.1;Note=BKPyVgp5;gbkey=CDS;product=large T antigen;protein_id=XXJ44563.1
+PV856444.1	Genbank	CDS	2335	4179	.	-	0	ID=cds-XXJ44563.1;Dbxref=NCBI_GP:XXJ44563.1;Name=XXJ44563.1;Note=BKPyVgp5;gbkey=CDS;product=large T antigen;protein_id=XXJ44563.1
+PV856444.1	Genbank	CDS	4248	4766	.	-	0	ID=cds-XXJ44558.1;Dbxref=NCBI_GP:XXJ44558.1;Name=XXJ44558.1;Note=BKPyVgp6;gbkey=CDS;product=small t antigen;protein_id=XXJ44558.1
+

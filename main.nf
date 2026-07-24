@@ -118,7 +118,6 @@ workflow {
             Utils.getGenomicRegion(Utils.getAnnotation(ref.baseName)),
             false
         )}
-        .view()
 
     CDS_VARIANTS (
         variants_ch
