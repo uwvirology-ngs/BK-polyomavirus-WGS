@@ -37,6 +37,6 @@ process CDS_VARIANTS {
         ${prefix}.tsv \\
         $gff \\
         $ref \\
-        ${prefix}.reformatted
+        ${ref.baseName}.reformatted
     """
 }
