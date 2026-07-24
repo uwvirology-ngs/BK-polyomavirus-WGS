@@ -1,0 +1,16 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+##sequence-region PZ129802.1 1 5138
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=1891762
+PZ129802.1	Genbank	region	1	5138	.	+	.	ID=PZ129802.1:1..5138;Dbxref=taxon:1891762;Is_circular=true;clone=25DF01521_BK_Clu;collection-date=01-Dec-2023;country=China;gbkey=Src;genome=proviral;genotype=Ic;isolate=24B23860;mol_type=genomic DNA
+PZ129802.1	Genbank	origin_of_replication	16	38	.	+	.	ID=id-PZ129802.1:16..38;gbkey=rep_origin
+PZ129802.1	Genbank	sequence_feature	295	494	.	+	.	ID=id-PZ129802.1:295..494;Note=nonfunctional agnoprotein due to mutation;gbkey=misc_feature
+PZ129802.1	Genbank	CDS	530	1585	.	+	0	ID=cds-YDV46037.1;Dbxref=NCBI_GP:YDV46037.1;Name=YDV46037.1;gbkey=CDS;product=VP2;protein_id=YDV46037.1
+PZ129802.1	Genbank	CDS	887	1585	.	+	0	ID=cds-YDV46038.1;Dbxref=NCBI_GP:YDV46038.1;Name=YDV46038.1;gbkey=CDS;product=VP3;protein_id=YDV46038.1
+PZ129802.1	Genbank	CDS	1470	2558	.	+	0	ID=cds-YDV46039.1;Dbxref=NCBI_GP:YDV46039.1;Name=YDV46039.1;gbkey=CDS;product=VP1;protein_id=YDV46039.1
+PZ129802.1	Genbank	CDS	4816	5058	.	-	0	ID=cds-YDV46040.1;Dbxref=NCBI_GP:YDV46040.1;Name=YDV46040.1;gbkey=CDS;product=large T antigen;protein_id=YDV46040.1
+PZ129802.1	Genbank	CDS	2628	4472	.	-	0	ID=cds-YDV46040.1;Dbxref=NCBI_GP:YDV46040.1;Name=YDV46040.1;gbkey=CDS;product=large T antigen;protein_id=YDV46040.1
+PZ129802.1	Genbank	intron	4473	4815	.	-	.	ID=id-PZ129802.1:4473..4815;Note=putative IVS for large T antigen;gbkey=intron
+PZ129802.1	Genbank	sequence_feature	4541	5058	.	-	.	ID=id-PZ129802.1:4541..5058;Note=nonfunctional small t antigen due to mutation;gbkey=misc_feature
+

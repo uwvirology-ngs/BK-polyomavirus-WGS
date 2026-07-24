@@ -1,0 +1,7 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+##sequence-region PQ859725.1 1 5141
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=1891762
+PQ859725.1	Genbank	region	1	5141	.	+	.	ID=PQ859725.1:1..5141;Dbxref=taxon:1891762;Is_circular=true;collection-date=19-Aug-2014;country=USA;gbkey=Src;genome=genomic;genotype=II;isolate=230_FL;isolation-source=urine;mol_type=genomic DNA;nat-host=Homo sapiens
+

@@ -31,6 +31,12 @@ include { PICARD_MERGE_CONSENSUS_BAMS       } from './modules/local/picard_merge
 include { BUILD_ALIGNMENT_SUMMARY           } from './modules/local/build_alignment_summary.nf'
 include { BUILD_RUN_SUMMARY                 } from './modules/local/build_run_summary.nf'
 
+include { BWA_ALIGN_REF                     } from './modules/refvar/bwa_align_ref.nf'
+include { PICARD_ADDORREPLACEREADGROUPS     } from './modules/refvar/addorreplacereadgroups.nf'
+include { GATK_REALIGNERTARGETCREATOR       } from './modules/refvar/realignertargetcreator.nf'
+include { GATK_INDELREALIGNER               } from './modules/refvar/indelrealigner.nf'
+include { CDS_VARIANTS                      } from './modules/refvar/cds_variants.nf'
+
 workflow {
     
     main:
@@ -50,28 +56,87 @@ workflow {
         FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
     )
 
-    // if a reference genome is not provided, select with revica-strm and combine
-    // with umi-extracted FASTQs. otherwise, use provided reference.
-    if (params.ref == null) {    
-        REFERENCE_PREP (
-            PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired,
-            file(params.db),
-            false
-        )
+    // ----------------------------------- REFERENCE PREP ------------------------------------
 
-        bwa_align_ch = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
-            .combine(REFERENCE_PREP.out.ref, by: 0)
-            .map {meta, reads, ref_info, ref -> tuple(meta, reads, ref, ref_info)}
-    } else {
-        bwa_align_ch = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
-            .map {meta, reads -> tuple(meta, reads, file(params.ref), null)}
-    }
+    // select reference genome with revica-strm and combine with umi-extracted FASTQs
+    REFERENCE_PREP (
+        PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired,
+        file(params.db),
+        false
+    )
+
+    // ----------------------------------- VARIANT CALLING -----------------------------------
+
+    ch_align_reads = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired
+        .combine(REFERENCE_PREP.out.ref, by: 0)
+        .map {meta, reads, _ref_info, ref -> tuple(meta + [pair_name: ref.baseName], reads, ref)}
+
+    BWA_ALIGN_REF (
+        ch_align_reads
+    )
+
+    ch_bam = BWA_ALIGN_REF.out.bam
+
+    PICARD_ADDORREPLACEREADGROUPS (
+        ch_bam.map{ [it[0],[it[1]]]},
+        [[],[]],
+        [[],[]]
+    )
+
+    BWA_ALIGN_REF.out.flagstat                                                   
+        .map { meta, flagstat -> [ meta ] + CheckReads.getFlagstatMappedReads(flagstat, params) }
+        .set { ch_mapped_reads }    
+
+    ch_mapped_reads
+        .map { meta, mapped, pass -> if (pass) [ meta ] }
+        .join(ch_align_reads, by: [0])
+        .join(PICARD_ADDORREPLACEREADGROUPS.out.bam, by: [0])
+        .multiMap { meta, reads, ref, bam, bai ->
+            reads:    [ meta, reads ]
+            ref:      [ meta, ref ]
+            bam:      [ meta, bam, bai ]
+        }.set { ch_variants_consensus }
+
+    GATK_REALIGNERTARGETCREATOR (
+        ch_variants_consensus.bam.join( ch_variants_consensus.ref.map{ s -> [s[0], s[1]] } ),
+        [[],[]]
+    )
+
+    GATK_INDELREALIGNER (
+        ch_variants_consensus.bam.join(GATK_REALIGNERTARGETCREATOR.out.intervals, by: 0).join(
+        ch_variants_consensus.ref.map{ s -> [s[0], s[1]] }),
+        [[],[]]
+    )
+
+    // tuple val(meta), path(bam), path(bai), path(ref), path(gff), region, val(save_mpileup)
+    // needs ref and gff and save_mpileup
+    variants_ch = GATK_INDELREALIGNER.out.bam
+        .join(ch_variants_consensus.ref, by: 0)
+        .map { meta, bam, bai, ref -> tuple(
+            meta, bam, bai, ref, 
+            "${projectDir}/assets/database/${Utils.getAnnotation(ref.baseName)}.gff", 
+            Utils.getGenomicRegion(Utils.getAnnotation(ref.baseName)),
+            false
+        )}
+        .view()
+
+    CDS_VARIANTS (
+        variants_ch
+    )
+
+    // -------------------------------------- CONSENSUS --------------------------------------
 
     CONSENSUS_ASSEMBLY (
         REFERENCE_PREP.out.reads,
         REFERENCE_PREP.out.ref,
         false
     )
+
+    // ---------------------------------------- TWIST ----------------------------------------
+
+    bwa_align_ch = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
+        .combine(REFERENCE_PREP.out.ref, by: 0)
+        .map {meta, reads, ref_info, ref -> tuple(meta, reads, ref, ref_info)}
 
     BWA_ALIGN_FASTQ(
         bwa_align_ch
