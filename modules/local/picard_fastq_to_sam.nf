@@ -26,8 +26,8 @@ process PICARD_FASTQ_TO_SAM {
     picard FastqToSam \\
         -Xmx${avail_mem}g \\
         O="${meta.id}_unaligned.bam" \\
-        F1=${meta.id}_R1.fastq.gz \\
-        F2=${meta.id}_R2.fastq.gz \\
+        F1=${meta.id}_R1.sample.fastq.gz \\
+        F2=${meta.id}_R2.sample.fastq.gz \\
         SM=${meta.id} \\
         LB=Library1 \\
         PU=Unit1 \\

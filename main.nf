@@ -19,6 +19,8 @@ include { CONSENSUS_ASSEMBLY } from './subworkflows/revica/consensus_assembly.nf
 /*
  * Modules
  */
+include { SEQTK_SAMPLE                      } from './modules/local/seqtk_sample.nf'
+
 include { PICARD_FASTQ_TO_SAM               } from './modules/local/picard_fastq_to_sam.nf'
 include { FGBIO_EXTRACT_UMIS_FROM_BAM       } from './modules/local/fgbio_extract_umis_from_bam.nf'
 include { PICARD_SAM_TO_FASTQ               } from './modules/local/picard_sam_to_fastq.nf'
@@ -44,8 +46,12 @@ workflow {
         params.input
     )
 
-    PICARD_FASTQ_TO_SAM (
+    SEQTK_SAMPLE (
         READ_SAMPLESHEET.out.reads
+    )
+
+    PICARD_FASTQ_TO_SAM (
+        SEQTK_SAMPLE.out.sampled_reads
     )
 
     FGBIO_EXTRACT_UMIS_FROM_BAM (
