@@ -1,6 +1,6 @@
 process BWA_ALIGN_REF {
     tag "${meta.id}"
-    label 'process_medium_java'
+    label 'process_high'
     container 'community.wave.seqera.io/library/bwa_samtools:eac4ad78deba8f5d'
 
     input:
