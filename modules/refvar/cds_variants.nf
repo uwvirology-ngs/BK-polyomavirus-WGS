@@ -4,7 +4,7 @@ process CDS_VARIANTS {
     container 'quay.io/jefffurlong/ivar:1.4.4'
 
     input:
-    tuple val(meta), path(bam), path(bai), path(ref), path(gff), val(genomic_region), val(save_mpileup)
+    tuple val(meta), path(bam), path(bai), path(ref), val(ref_info), path(gff), val(genomic_region), val(save_mpileup)
 
     output:
     tuple val(meta), path("*.tsv"),     emit: tsv

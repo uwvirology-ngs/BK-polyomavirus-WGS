@@ -75,7 +75,7 @@ workflow {
 
     ch_align_reads = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired
         .combine(REFERENCE_PREP.out.ref, by: 0)
-        .map {meta, reads, _ref_info, ref -> tuple(meta + [pair_name: ref.baseName], reads, ref)}
+        .map {meta, reads, ref_info, ref -> tuple(meta + [pair_name: ref.baseName], reads, ref, ref_info)}
 
     BWA_ALIGN_REF (
         ch_align_reads
@@ -97,9 +97,9 @@ workflow {
         .map { meta, mapped, pass -> if (pass) [ meta ] }
         .join(ch_align_reads, by: [0])
         .join(PICARD_ADDORREPLACEREADGROUPS.out.bam, by: [0])
-        .multiMap { meta, reads, ref, bam, bai ->
+        .multiMap { meta, reads, ref, ref_info, bam, bai ->
             reads:    [ meta, reads ]
-            ref:      [ meta, ref ]
+            ref:      [ meta, ref, ref_info ]
             bam:      [ meta, bam, bai ]
         }.set { ch_variants_consensus }
 
@@ -118,10 +118,10 @@ workflow {
     // needs ref and gff and save_mpileup
     variants_ch = GATK_INDELREALIGNER.out.bam
         .join(ch_variants_consensus.ref, by: 0)
-        .map { meta, bam, bai, ref -> tuple(
-            meta, bam, bai, ref, 
-            "${projectDir}/assets/database/${Utils.getAnnotation(ref.baseName)}.gff", 
-            Utils.getGenomicRegion(Utils.getAnnotation(ref.baseName)),
+        .map { meta, bam, bai, ref, ref_info -> tuple(
+            meta, bam, bai, ref, ref_info,
+            "${projectDir}/assets/database/${ref_info.acc}.gff", 
+            Utils.getGenomicRegion(ref_info.acc),
             false
         )}
 

@@ -1,6 +1,6 @@
 class Utils {
     public static String getAnnotation(String s) {
-        String ref = s.substring(s.indexOf('_') + 1)
+        String ref = s.substring(s.lastIndexOf('_') + 1)
         return ref
     }
 

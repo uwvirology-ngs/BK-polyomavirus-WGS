@@ -4,7 +4,7 @@ process BWA_ALIGN_REF {
     container 'community.wave.seqera.io/library/bwa_samtools:eac4ad78deba8f5d'
 
     input:
-    tuple val(meta), path(fastq), path(ref)
+    tuple val(meta), path(fastq), path(ref), val(ref_info)
 
     output:
     tuple val(meta), path("*.sorted.bam"), path("*.sorted.bam.bai"),    emit: bam
