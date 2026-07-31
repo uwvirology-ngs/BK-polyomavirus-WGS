@@ -71,6 +71,26 @@ workflow {
         false
     )
 
+    // ----------------------------------- Back to Twist ------------------------------------
+
+    bwa_align_ch = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
+        .combine(REFERENCE_PREP.out.ref, by: 0)
+        .map {meta, reads, ref_info, ref -> tuple(meta, reads, ref, ref_info)}
+
+    BWA_ALIGN_FASTQ(
+        bwa_align_ch
+    )
+
+    // combine each aligned BAM with the correct UMI-extracted bam from Twist step 2 
+    // and record the reference genome used in metadata
+    merged_bams_ch = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
+        .combine(FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam, by: 0)
+        .map { meta, bam1, ref, ref_info, bam2 -> tuple(meta + [pair_name: ref.baseName], bam1, ref, ref_info, bam2) }
+
+    PICARD_MERGE_BAM_ALIGNMENT(
+        merged_bams_ch
+    )
+
     // ----------------------------------- VARIANT CALLING -----------------------------------
 
     ch_align_reads = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired
@@ -138,24 +158,6 @@ workflow {
     )
 
     // ---------------------------------------- TWIST ----------------------------------------
-
-    bwa_align_ch = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
-        .combine(REFERENCE_PREP.out.ref, by: 0)
-        .map {meta, reads, ref_info, ref -> tuple(meta, reads, ref, ref_info)}
-
-    BWA_ALIGN_FASTQ(
-        bwa_align_ch
-    )
-
-    // combine each aligned BAM with the correct UMI-extracted bam from Twist step 2 
-    // and record the reference genome used in metadata
-    merged_bams_ch = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
-        .combine(FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam, by: 0)
-        .map { meta, bam1, ref, ref_info, bam2 -> tuple(meta + [pair_name: ref.baseName], bam1, ref, ref_info, bam2) }
-
-    PICARD_MERGE_BAM_ALIGNMENT(
-        merged_bams_ch
-    )
 
     FGBIO_GROUP_READS_BY_UMI(
         PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
