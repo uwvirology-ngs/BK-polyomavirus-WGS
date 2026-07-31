@@ -33,7 +33,6 @@ include { PICARD_MERGE_CONSENSUS_BAMS       } from './modules/local/picard_merge
 include { BUILD_ALIGNMENT_SUMMARY           } from './modules/local/build_alignment_summary.nf'
 include { BUILD_RUN_SUMMARY                 } from './modules/local/build_run_summary.nf'
 
-include { BWA_ALIGN_REF                     } from './modules/refvar/bwa_align_ref.nf'
 include { PICARD_ADDORREPLACEREADGROUPS     } from './modules/refvar/addorreplacereadgroups.nf'
 include { GATK_REALIGNERTARGETCREATOR       } from './modules/refvar/realignertargetcreator.nf'
 include { GATK_INDELREALIGNER               } from './modules/refvar/indelrealigner.nf'
@@ -91,34 +90,16 @@ workflow {
         merged_bams_ch
     )
 
-    // ----------------------------------- VARIANT CALLING -----------------------------------
-
-    ch_align_reads = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired
-        .combine(REFERENCE_PREP.out.ref, by: 0)
-        .map {meta, reads, ref_info, ref -> tuple(meta + [pair_name: ref.baseName], reads, ref, ref_info)}
-
-    BWA_ALIGN_REF (
-        ch_align_reads
-    )
-
-    ch_bam = BWA_ALIGN_REF.out.bam
+    // ----------------------------------- VARIANT CALLING ----------------------------------- 
 
     PICARD_ADDORREPLACEREADGROUPS (
-        ch_bam.map{ [it[0],[it[1]]]},
+        PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam,
         [[],[]],
         [[],[]]
     )
 
-    BWA_ALIGN_REF.out.flagstat                                                   
-        .map { meta, flagstat -> [ meta ] + CheckReads.getFlagstatMappedReads(flagstat, params) }
-        .set { ch_mapped_reads }    
-
-    ch_mapped_reads
-        .map { meta, mapped, pass -> if (pass) [ meta ] }
-        .join(ch_align_reads, by: [0])
-        .join(PICARD_ADDORREPLACEREADGROUPS.out.bam, by: [0])
-        .multiMap { meta, reads, ref, ref_info, bam, bai ->
-            reads:    [ meta, reads ]
+    PICARD_ADDORREPLACEREADGROUPS.out.bam
+        .multiMap { meta, bam, bai, ref, ref_info ->
             ref:      [ meta, ref, ref_info ]
             bam:      [ meta, bam, bai ]
         }.set { ch_variants_consensus }

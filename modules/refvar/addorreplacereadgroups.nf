@@ -8,12 +8,12 @@ process PICARD_ADDORREPLACEREADGROUPS {
         'quay.io/biocontainers/picard:3.3.0--hdfd78af_0' }"
 
     input:
-    tuple val(meta), path(reads)
+    tuple val(meta), path(reads), path(ref), val(ref_info)
     tuple val(meta2), path(fasta)
     tuple val(meta3), path(fasta_index)
 
     output:
-    tuple val(meta), path("*.bam"), path("*.bai"), emit: bam
+    tuple val(meta), path("*.bam"), path("*.bai"), path(ref), val(ref_info), emit: bam
     path "versions.yml"            , emit: versions
 
     when:
