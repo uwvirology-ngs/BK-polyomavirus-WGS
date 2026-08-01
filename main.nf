@@ -12,31 +12,31 @@ params {
 /*
  * Subworkflows
  */
-include { READ_SAMPLESHEET   } from './subworkflows/local/read_samplesheet.nf'
-include { REFERENCE_PREP     } from './subworkflows/revica/reference_prep.nf'
-include { CONSENSUS_ASSEMBLY } from './subworkflows/revica/consensus_assembly.nf'
+include { READ_SAMPLESHEET   } from './subworkflows/core/read_samplesheet.nf'
+include { REFERENCE_PREP     } from './subworkflows/reference_prep/reference_prep.nf'
+include { CONSENSUS_ASSEMBLY } from './subworkflows/consensus_assembly/consensus_assembly.nf'
 
 /*
  * Modules
  */
-include { SEQTK_SAMPLE                      } from './modules/local/seqtk_sample.nf'
+include { SEQTK_SAMPLE                      } from './modules/core/seqtk_sample.nf'
 
-include { PICARD_FASTQ_TO_SAM               } from './modules/local/picard_fastq_to_sam.nf'
-include { FGBIO_EXTRACT_UMIS_FROM_BAM       } from './modules/local/fgbio_extract_umis_from_bam.nf'
-include { PICARD_SAM_TO_FASTQ               } from './modules/local/picard_sam_to_fastq.nf'
-include { BWA_ALIGN_FASTQ                   } from './modules/local/bwa_align_fastq.nf'
-include { PICARD_MERGE_BAM_ALIGNMENT        } from './modules/local/picard_merge_bam_alignment.nf'
-include { FGBIO_GROUP_READS_BY_UMI          } from './modules/local/fgbio_group_reads_by_umi.nf'
-include { FGBIO_CALL_DUPLEX_CONSENSUS_READS } from './modules/local/fgbio_call_duplex_consensus_reads.nf'
-include { ALIGN_DUPLEX_CONSENSUS_READS      } from './modules/local/align_duplex_consensus_reads.nf'
-include { PICARD_MERGE_CONSENSUS_BAMS       } from './modules/local/picard_merge_consensus_bams.nf'
-include { BUILD_ALIGNMENT_SUMMARY           } from './modules/local/build_alignment_summary.nf'
-include { BUILD_RUN_SUMMARY                 } from './modules/local/build_run_summary.nf'
+include { PICARD_FASTQ_TO_SAM               } from './modules/core/picard_fastq_to_sam.nf'
+include { FGBIO_EXTRACT_UMIS_FROM_BAM       } from './modules/core/fgbio_extract_umis_from_bam.nf'
+include { PICARD_SAM_TO_FASTQ               } from './modules/core/picard_sam_to_fastq.nf'
+include { BWA_ALIGN_FASTQ                   } from './modules/core/bwa_align_fastq.nf'
+include { PICARD_MERGE_BAM_ALIGNMENT        } from './modules/core/picard_merge_bam_alignment.nf'
+include { FGBIO_GROUP_READS_BY_UMI          } from './modules/core/fgbio_group_reads_by_umi.nf'
+include { FGBIO_CALL_DUPLEX_CONSENSUS_READS } from './modules/core/fgbio_call_duplex_consensus_reads.nf'
+include { ALIGN_DUPLEX_CONSENSUS_READS      } from './modules/core/align_duplex_consensus_reads.nf'
+include { PICARD_MERGE_CONSENSUS_BAMS       } from './modules/core/picard_merge_consensus_bams.nf'
+include { BUILD_ALIGNMENT_SUMMARY           } from './modules/core/build_alignment_summary.nf'
+include { BUILD_RUN_SUMMARY                 } from './modules/core/build_run_summary.nf'
 
-include { PICARD_ADDORREPLACEREADGROUPS     } from './modules/refvar/addorreplacereadgroups.nf'
-include { GATK_REALIGNERTARGETCREATOR       } from './modules/refvar/realignertargetcreator.nf'
-include { GATK_INDELREALIGNER               } from './modules/refvar/indelrealigner.nf'
-include { CDS_VARIANTS                      } from './modules/refvar/cds_variants.nf'
+include { PICARD_ADDORREPLACEREADGROUPS     } from './modules/variant_calling/addorreplacereadgroups.nf'
+include { GATK_REALIGNERTARGETCREATOR       } from './modules/variant_calling/realignertargetcreator.nf'
+include { GATK_INDELREALIGNER               } from './modules/variant_calling/indelrealigner.nf'
+include { CDS_VARIANTS                      } from './modules/variant_calling/cds_variants.nf'
 
 workflow {
     

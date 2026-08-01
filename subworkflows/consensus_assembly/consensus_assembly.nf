@@ -2,9 +2,9 @@
 // 2 iterations of consensus assembly using BBMAP for alignment and iVar consensus for consensus calling
 //                                                              
 
-include { BWA_MEM_ALIGN as BWA_MEM_ALIGN_QUERY                                      } from '../../modules/revica/bwa_mem_align' 
+include { BWA_MEM_ALIGN as BWA_MEM_ALIGN_QUERY                                      } from '../../modules/consensus_assembly/bwa_mem_align' 
 include { IVAR_CONSENSUS_BWA_ALIGN as IVAR_CONSENSUS_BWA_MEM_ALIGN_INITIAL_ASSEMBLY } from './ivar_consensus_bwa_align'
-include { IVAR_CONSENSUS as BUILD_FINAL_CONSENSUS                                   } from '../../modules/revica/ivar_consensus'
+include { IVAR_CONSENSUS as BUILD_FINAL_CONSENSUS                                   } from '../../modules/consensus_assembly/ivar_consensus'
                                                                                    
 workflow CONSENSUS_ASSEMBLY {                                                 
     take:                                                                          
