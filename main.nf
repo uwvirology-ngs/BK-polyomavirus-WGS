@@ -94,8 +94,6 @@ workflow {
 
     PICARD_ADDORREPLACEREADGROUPS (
         PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam,
-        [[],[]],
-        [[],[]]
     )
 
     PICARD_ADDORREPLACEREADGROUPS.out.bam
