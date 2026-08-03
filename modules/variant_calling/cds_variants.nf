@@ -31,10 +31,10 @@ process CDS_VARIANTS {
             $args \\
             -g $gff \\
             -r $ref \\
-            -p $prefix
+            -p ${ref.baseName}
 
     edit_cds_variants.py \\
-        ${prefix}.tsv \\
+        ${ref.baseName}.tsv \\
         $gff \\
         $ref \\
         ${ref.baseName}.reformatted
