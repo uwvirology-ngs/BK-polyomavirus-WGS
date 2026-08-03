@@ -1,79 +1,32 @@
 process GATK_INDELREALIGNER {
-    tag "${meta.id}"
-    label 'process_single'
 
-    conda "${moduleDir}/environment.yml"
+    label 'process_single'
     container 'community.wave.seqera.io/library/gatk_samtools:5773d856edb307d7'
-    // gatk=3.8, samtools=1.23.1
 
     input:
     tuple val(meta), path(bam), path(bai), path(ref), val(ref_info), path(intervals)
 
     output:
     tuple val(meta), path("*.bam"), path("*.bai"), path(ref), val(ref_info),    emit: bam
-    path "versions.yml", emit: versions
-
-    when:
-    task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
-    def known = ""
-
-    if ("${bam}" == "${prefix}.bam") {
-        error("Input and output names are the same, set prefix in module configuration to disambiguate!")
+    def avail_mem = 8
+    if (task.memory) {
+        avail_mem = task.memory.toGiga()
     }
-
-    def avail_mem = 3072
-    if (!task.memory) {
-        log.info('[GATK IndelRealigner] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.')
-    }
-    else {
-        avail_mem = (task.memory.mega * 0.8).intValue()
-    }
+    avail_mem -= 2
 
     """
     samtools faidx "${ref}"
     samtools dict "${ref}" > "${ref.baseName}.dict"
 
     gatk3 \\
-        -Xmx${avail_mem}M \\
+        -Xmx${avail_mem}g \\
         -T IndelRealigner \\
         -R ${ref} \\
         -I ${bam} \\
         --targetIntervals ${intervals} \\
-        ${known} \\
-        -o ${prefix}.bam \\
-        ${args}
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        gatk: \$(echo \$(gatk3 --version))
-    END_VERSIONS
-    """
-
-    stub:
-    def prefix = task.ext.prefix ?: "${meta.id}"
-
-    if ("${bam}" == "${prefix}.bam") {
-        error("Input and output names are the same, set prefix in module configuration to disambiguate!")
-    }
-
-    def avail_mem = 3072
-    if (!task.memory) {
-        log.info('[GATK IndelRealigner] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.')
-    }
-    else {
-        avail_mem = (task.memory.mega * 0.8).intValue()
-    }
-    """
-    touch ${prefix}.bam
-    touch ${prefix}.bam.bai
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        gatk: \$(echo \$(gatk3 --version))
-    END_VERSIONS
+        -o ${meta.id}.bam \\
+        -maxReads 500000
     """
 }

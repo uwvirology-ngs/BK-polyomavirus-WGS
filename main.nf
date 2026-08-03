@@ -96,12 +96,6 @@ workflow {
         PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam,
     )
 
-    //PICARD_ADDORREPLACEREADGROUPS.out.bam
-    //    .multiMap { meta, bam, bai, ref, ref_info ->
-    //        ref:      [ meta, ref, ref_info ]
-    //        bam:      [ meta, bam, bai ]
-    //    }.set { ch_variants_consensus }
-
     GATK_REALIGNERTARGETCREATOR (
         PICARD_ADDORREPLACEREADGROUPS.out.bam
     )
