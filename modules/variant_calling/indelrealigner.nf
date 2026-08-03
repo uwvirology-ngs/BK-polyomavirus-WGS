@@ -7,12 +7,10 @@ process GATK_INDELREALIGNER {
     // gatk=3.8, samtools=1.23.1
 
     input:
-    tuple val(meta), path(bam), path(bai), path(intervals), path(fasta)
-    //tuple val(meta2), path(fasta)
-    tuple val(meta5), path(known_vcf)
+    tuple val(meta), path(bam), path(bai), path(ref), val(ref_info), path(intervals)
 
     output:
-    tuple val(meta), path("*.bam"), path("*.bai"), emit: bam
+    tuple val(meta), path("*.bam"), path("*.bai"), path(ref), val(ref_info),    emit: bam
     path "versions.yml", emit: versions
 
     when:
@@ -21,7 +19,7 @@ process GATK_INDELREALIGNER {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def known = known_vcf ? "-known ${known_vcf}" : ""
+    def known = ""
 
     if ("${bam}" == "${prefix}.bam") {
         error("Input and output names are the same, set prefix in module configuration to disambiguate!")
@@ -36,13 +34,13 @@ process GATK_INDELREALIGNER {
     }
 
     """
-    samtools faidx "${fasta}"
-    samtools dict "${fasta}" > "${fasta.baseName}.dict"
+    samtools faidx "${ref}"
+    samtools dict "${ref}" > "${ref.baseName}.dict"
 
     gatk3 \\
         -Xmx${avail_mem}M \\
         -T IndelRealigner \\
-        -R ${fasta} \\
+        -R ${ref} \\
         -I ${bam} \\
         --targetIntervals ${intervals} \\
         ${known} \\

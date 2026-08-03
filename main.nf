@@ -96,27 +96,23 @@ workflow {
         PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam,
     )
 
-    PICARD_ADDORREPLACEREADGROUPS.out.bam
-        .multiMap { meta, bam, bai, ref, ref_info ->
-            ref:      [ meta, ref, ref_info ]
-            bam:      [ meta, bam, bai ]
-        }.set { ch_variants_consensus }
+    //PICARD_ADDORREPLACEREADGROUPS.out.bam
+    //    .multiMap { meta, bam, bai, ref, ref_info ->
+    //        ref:      [ meta, ref, ref_info ]
+    //        bam:      [ meta, bam, bai ]
+    //    }.set { ch_variants_consensus }
 
     GATK_REALIGNERTARGETCREATOR (
-        ch_variants_consensus.bam.join( ch_variants_consensus.ref.map{ s -> [s[0], s[1]] } ),
-        [[],[]]
+        PICARD_ADDORREPLACEREADGROUPS.out.bam
     )
 
     GATK_INDELREALIGNER (
-        ch_variants_consensus.bam.join(GATK_REALIGNERTARGETCREATOR.out.intervals, by: 0).join(
-        ch_variants_consensus.ref.map{ s -> [s[0], s[1]] }),
-        [[],[]]
+        GATK_REALIGNERTARGETCREATOR.out.intervals
     )
 
     // tuple val(meta), path(bam), path(bai), path(ref), path(gff), region, val(save_mpileup)
     // needs ref and gff and save_mpileup
     variants_ch = GATK_INDELREALIGNER.out.bam
-        .join(ch_variants_consensus.ref, by: 0)
         .map { meta, bam, bai, ref, ref_info -> tuple(
             meta, bam, bai, ref, ref_info,
             "${projectDir}/assets/database/${ref_info.acc}.gff", 
