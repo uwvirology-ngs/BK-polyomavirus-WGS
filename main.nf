@@ -5,7 +5,6 @@
  */
 params {
     input: Path
-    ref: Path
     db: Path
 }
 
