@@ -182,37 +182,37 @@ workflow {
 
 output {
     unaligned_bam {
-        path 'picard_fastq_to_sam'
+        path 'twist/picard_fastq_to_sam'
     }
     umi_extracted_bam {
-        path 'fgbio_extract_umis_from_bam'
+        path 'twist/fgbio_extract_umis_from_bam'
     }
     umi_extracted_fastq_interleaved {
-        path 'picard_sam_to_fastq/interleaved'
+        path 'twist/picard_sam_to_fastq/interleaved'
     }
     umi_extracted_fastq_paired {
-        path 'picard_sam_to_fastq/paired'
+        path 'twist/picard_sam_to_fastq/paired'
     }
     aligned_umi_extracted_bam {
-        path 'bwa_align_fastq'
+        path 'twist/bwa_align_fastq'
     }
     merged_bam {
-        path 'picard_merge_bam_alignment'
+        path 'twist/picard_merge_bam_alignment'
     }
     grouped_bam {
-        path 'picard_group_reads_by_umi/bam'
+        path 'twist/picard_group_reads_by_umi/bam'
     }
     grouped_hist {
-        path 'picard_group_reads_by_umi/hist'
+        path 'twist/picard_group_reads_by_umi/hist'
     }
     unaligned_consensus_bam {
-        path 'fgbio_call_duplex_consensus_reads'
+        path 'twist/fgbio_call_duplex_consensus_reads'
     }
     aligned_consensus_bam {
-        path 'align_duplex_consensus_reads'
+        path 'twist/align_duplex_consensus_reads'
     }
     final_consensus_bam {
-        path 'picard_merge_consensus_bams'
+        path 'twist/picard_merge_consensus_bams'
     }
     alignment_summary {
         path 'summaries/alignment_summary'
