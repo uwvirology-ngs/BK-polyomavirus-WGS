@@ -1,6 +1,6 @@
 process GATK_INDELREALIGNER {
 
-    label 'process_single'
+    label 'process_medium'
     container 'community.wave.seqera.io/library/gatk_samtools:5773d856edb307d7'
 
     input:
