@@ -26,6 +26,6 @@ process GATK_REALIGNERTARGETCREATOR {
         -nt ${task.cpus} \\
         -I ${bam} \\
         -R ${ref} \\
-        -o ${meta.id}.intervals
+        -o ${ref.baseName}.intervals
     """
 }

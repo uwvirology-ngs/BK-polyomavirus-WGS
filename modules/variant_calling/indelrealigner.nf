@@ -26,7 +26,7 @@ process GATK_INDELREALIGNER {
         -R ${ref} \\
         -I ${bam} \\
         --targetIntervals ${intervals} \\
-        -o ${meta.id}.bam \\
+        -o ${ref.baseName}.bam \\
         -maxReads 500000
     """
 }
