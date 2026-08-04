@@ -147,9 +147,17 @@ workflow {
         consensus_ch
     )
 
+    // --------------------------------------- SUMMARY ---------------------------------------
+    
+    CONSENSUS_ASSEMBLY.out.final_consensus
+        .map { meta, ref_info, fasta -> tuple(meta + [pair_name: "${meta.id}_${ref_info.acc}"], ref_info, fasta) }
+        .set { consensus_to_summary_ch }
+
     alignment_summary_ch = PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
         .join(PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam)
         .map { meta, bam1, ref1, ref_info1, bam2, _ref2, _ref_info2 -> tuple(meta, bam1, bam2, ref1, ref_info1) }
+        .join(consensus_to_summary_ch)
+        .map { meta, bam1, bam2, ref, ref_info1, _ref_info2, consensus_fa -> tuple(meta, bam1, bam2, ref, ref_info1, consensus_fa) }
 
     BUILD_ALIGNMENT_SUMMARY (
         alignment_summary_ch
