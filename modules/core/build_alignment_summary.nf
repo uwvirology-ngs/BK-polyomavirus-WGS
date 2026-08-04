@@ -33,14 +33,22 @@ process BUILD_ALIGNMENT_SUMMARY {
     mean_depth=\$(samtools coverage ${merged_bam} | awk 'NR==2 {print \$7}')
     coverage=\$(samtools coverage ${merged_bam} | awk 'NR==2 {print \$6}')
 
+    # 5. consensus genome stats
+    consensus_bases=\$(grep -v '^>' ${consensus_fa} | tr -d '\\n')
+    consensus_len=\${#consensus_bases}
+    n_bases=\$(grep -o "N" <<< \$consensus_bases | wc -l)
+    pct_ns=\$(echo "\${n_bases}/\${consensus_len}*100" | bc -l | awk 'FNR==1{print val,\$1}')
+    pct_ns_format=\$(printf "%.4f" "\${pct_ns}")
+
     # build output .tsv
     {
-        printf "sample_name\tref_acc\tref_tag\tref_header\traw_reads\tmapped_reads\tpct_reads_mapped\tmean_depth\tcoverage\n"
-        printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+        printf "sample_name\tref_acc\tref_tag\tref_header\traw_reads\tmapped_reads\tpct_reads_mapped\tmean_depth\tcoverage\tconsensus_len\tn_bases\tpct_ns\n"
+        printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
             "\$sample_name" \
             "\$ref_acc" "\$ref_tag" "\$ref_header" \
             "\$raw_reads" "\$mapped_reads" "\$pct_reads_mapped" \
-            "\$mean_depth" "\$coverage"
+            "\$mean_depth" "\$coverage" \
+            "\$consensus_len" "\$n_bases" "\$pct_ns_format"
     } > "${ref.baseName}.tsv"
     """
 }
