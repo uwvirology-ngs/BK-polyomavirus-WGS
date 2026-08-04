@@ -19,15 +19,16 @@ process CDS_VARIANTS {
     def prefix = task.ext.prefix ?: "${meta.id}"
     def mpileup = save_mpileup ? "| tee ${prefix}.mpileup" : ""
     """
-    samtools \\
-        mpileup \\
+    samtools mpileup \\
         $args2 \\
         --reference $ref \\
         --region ${genomic_region} \\
         $bam \\
         $mpileup \\
-        | ivar \\
-            variants \\
+            > "${ref.baseName}.mpileup"
+
+    cat "${ref.baseName}.mpileup" \\
+        | ivar variants \\
             $args \\
             -g $gff \\
             -r $ref \\
