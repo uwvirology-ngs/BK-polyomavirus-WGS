@@ -157,7 +157,7 @@ workflow {
         .join(PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam)
         .map { meta, bam1, ref1, ref_info1, bam2, _ref2, _ref_info2 -> tuple(meta, bam1, bam2, ref1, ref_info1) }
         .join(consensus_to_summary_ch)
-        .map { meta, bam1, bam2, ref, ref_info1, _ref_info2, consensus_fa -> tuple(meta, bam1, bam2, ref, ref_info1, consensus_fa) }
+        .map { meta, bam1, bam2, ref, ref_info1, _ref_info2, consensus_fa -> tuple(meta, bam1, bam2, ref, ref_info1, consensus_fa, Utils.getGenomicRegion(ref_info1.acc), Utils.getCDSLen(ref_info1.acc)) }
 
     BUILD_ALIGNMENT_SUMMARY (
         alignment_summary_ch

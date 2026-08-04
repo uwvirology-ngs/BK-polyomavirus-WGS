@@ -17,4 +17,18 @@ class Utils {
         ]
         return map[s]
     }
+
+    public static int getCDSLen(String s) {
+        HashMap map = [
+            "PV856408.1": 1088,
+            "PV856409.1": 1088,
+            "PV856429.1": 1088,
+            "PV856444.1": 1088,
+            "PV856452.1": 1088,
+            "PX257737.1": 1088,
+            "PZ129835.1": 1088,
+            "NC_001538.1": 1088
+        ]
+        return map[s]
+    }
 }
