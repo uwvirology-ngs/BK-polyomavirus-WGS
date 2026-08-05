@@ -8,33 +8,33 @@
 
 ## Description
 
-Analyze sequencing libraries prepared with the Twist Unique Molecular Identifier (UMI) Adapter System.
+Analyze BK Polyomavirus sequencing libraries prepared with the Twist Unique Molecular Identifier (UMI) Adapter System.
 
-Here we implement the data analysis guideline provided by [Twist Bioscience](https://www.twistbioscience.com/) for processing sequencing data prepared with their [UMI adapter system](https://www.twistbioscience.com/products/ngs/library-preparation/twist-umi-adapter-system) and incorporate automated reference genome selection. 
+Here we produce alignments, consensus sequences, tabulated variants, and UMI-aware duplex consensus sequences given FASTQ files created by Illumina short-read sequencing experiments on BK Polyomavirus samples. This implementation follows and builds upon the guideline provided by [Twist Bioscience](https://www.twistbioscience.com/) for processing sequencing data prepared with their [UMI adapter system](https://www.twistbioscience.com/products/ngs/library-preparation/twist-umi-adapter-system). 
 
-## Workflow
+## Limitations
+
+This pipeline is actively being developed and is midway though validation for clinical research purposes. We currently only support analysis of BK Polyomavirus genomes with a particular database of reference sequences, however support for custom databases and generalization to any pathogen is intended for future release.
+
+## Workflow (UMI-aware steps)
 
 <img src="./assets/img/bkv_workflow.drawio.png">
 
 ## Requirements
 
-This pipeline is tested with [nf-test](https://www.nf-test.com/) on Ubuntu 26.04 LTS with Nextflow v26.04.6+ and Docker v29.4.2. 
+This pipeline is tested with [nf-test](https://www.nf-test.com/) on Ubuntu 26.04 LTS with the latest release of Nextflow and version 26.04.6. 
 
 Install [`Nextflow`](https://www.nextflow.io/docs/latest/install.html)
+
+Docker v29.4.2+ is supported for containerization. 
 
 Install [`Docker`](https://docs.docker.com/engine/install/)
 
 ## Usage
 
-### Reference Selection
-
-By default, a reference genome is selected from a database of BK Polyomavirus (BKPyV) genomes, however any multifasta may be provided on the command line as a database. Alternatively, automated selection can be entirely circumvented by specifying a reference genome directly. 
-
-These default settings stem from this pipeline's first application: analyzing BKPyV genomes. 
-
 ### Example Run
 
-An example dataset is provided for users to try out the pipeline locally. To run the example, first clone this repository, then execute the following command in the project root directory: 
+To run an example dataset, clone this repository and execute the following command in the project root directory: 
 
 ```bash
 nextflow run main.nf \
@@ -43,13 +43,7 @@ nextflow run main.nf \
 
 ### Integration with Amazon Web Services
 
-A profile is included for pipeline execution with [awsbatch](https://docs.seqera.io/nextflow/executor#aws-batch). This profile is intended for users at the University of Washington but can be used freely, though we suggest tuning the resource limits to your HPC specs. [Fusion file system](https://docs.seqera.io/fusion) is enabled here. Consequently, an API token from [Seqera Platform](https://cloud.seqera.io) is required to run with this profile. 
-
-Once generated, this token can be defined in your `.bashrc` file for convenience:
-
-```bash
-export TOWER_ACCESS_TOKEN="your_token_here"
-```
+A profile is included for execution with [awsbatch](https://docs.seqera.io/nextflow/executor#aws-batch). This profile is tailored to users within the UW's Divison of Infectious Disease Diagnostics, but can be used freely by tuning the resource limits to your HPC specs. 
 
 For reference, here is a minimal example command for execution with awsbatch:
 
@@ -57,6 +51,7 @@ For reference, here is a minimal example command for execution with awsbatch:
 nextflow run uwvirology-ngs/bk-polyomavirus-wgs -r main -latest \
     --input your_samplesheet.csv \
     --output your_output_directory \
+    --sampleTo 2000000 \
     -profile awsbatch \
     -c your_nextflow_aws.config
 ```
@@ -69,10 +64,10 @@ nextflow run uwvirology-ngs/bk-polyomavirus-wgs -r main -latest \
 | `--input` | samplesheet | /assets/samplesheet.csv |
 | `--output` | output directory | results |
 
-### Optional Parameters - Twist UMI Workflow
+### Optional Parameters
 | Parameter | About | Default |
 |---------|---------|---------|
-| `--ref` | reference genome | null |
+| `--sampleTo` | maximal reads per FASTQ after downsampling | 1000000 |
 
 ### Optional Parameters - Reference Selection
 | Parameter | About | Default |
@@ -81,9 +76,16 @@ nextflow run uwvirology-ngs/bk-polyomavirus-wgs -r main -latest \
 | `--ref_min_depth` | minimum sequencing depth | 3 |
 | `--ref_min_cov` | minimum coverage | 30 |
 
+### Optional Parameters - Variant Calling
+| Parameter | About | Default |
+|---------|---------|---------|
+| `--ivar_variants_t` | minimum frequency threshold to call variants | 0.01 |
+| `--ivar_variants_q` | minimum quality score threshold to count base | 20 |
+| `--ivar_variants_m` | minimum read depth to call variants | 10 |
+
 ## Acknowledgements
 
-Reference selection logic incorporated from [revica-strm](https://github.com/epiliper/revica-strm) by the [Greninger Lab](https://github.com/greninger-lab).
+The reference selection and consensus sequence assembly workflows were adapted from [revica-strm](https://github.com/epiliper/revica-strm) by the [Greninger Lab](https://github.com/greninger-lab). Variant calling was adapted from [nf_mpxv_f13l](https://github.com/greninger-lab/nf_mpxv_f13l) by the same.
 
 ## Contact
 
