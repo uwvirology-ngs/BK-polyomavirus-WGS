@@ -5,8 +5,7 @@ process BWA_MEM_ALIGN_DB {
 
     input:
     tuple val(meta), path(fastqs)
-    tuple path(db), path(db_indexed)
-    val use_mem2
+    path(db)
 
     output:
     tuple val(meta), path("*covstats.tsv"), emit: covstats
@@ -18,6 +17,8 @@ process BWA_MEM_ALIGN_DB {
     # 2. read is supplementary alignment (chimeric, not representative alignment)
     # we can't let these reads survive.
     FLAG=2052
+
+    bwa index ${db}
 
     bwa mem \
         ${db} \

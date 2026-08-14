@@ -1,12 +1,3 @@
-//                                                                                 
-// Take the db alignment covstats from bbmap and output 
-// the selected reference(s) based on selection criteria
-// specified in nextflow.config. Copies of reads are
-// created to match the number of selected reference(s)
-// for downstream alignment and consensus assembly processes.
-//
-
-include { BWA_MEM_INDEX        } from '../../modules/reference_prep/bwa_mem_index' 
 include { BWA_MEM_ALIGN_DB     } from '../../modules/reference_prep/bwa_mem_align_db'
 include { SELECT_REFERENCE      } from '../../modules/reference_prep/select_reference'                     
 include { MAKE_REFERENCE_FASTA  } from '../../modules/reference_prep/make_reference_fasta'
@@ -16,19 +7,12 @@ workflow REFERENCE_PREP {
     take:                                                                          
     ch_reads    // channel: [ val(meta), path(reads) ]                  
     db          // path: db
-    use_mem2    // val: use_mem2
+    _use_mem2    // val: use_mem2
                                                                                    
     main:
-                                                                                   
-    BWA_MEM_INDEX (
-        db,
-        use_mem2
-    )
-
     BWA_MEM_ALIGN_DB (
         ch_reads,
-        BWA_MEM_INDEX.out.indexed_fasta,
-        use_mem2
+        db
     )
                                                                                    
     SELECT_REFERENCE (                                                             
