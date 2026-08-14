@@ -186,6 +186,7 @@ workflow {
     alignment_summary               = BUILD_ALIGNMENT_SUMMARY.out.alignment_summary
     run_summary                     = BUILD_RUN_SUMMARY.out.run_summary
 
+    alignment_to_db = REFERENCE_PREP.out.alignment_to_db
     covstats = REFERENCE_PREP.out.covstats
     failed_assembly_summary = REFERENCE_PREP.out.failed_assembly_summary
     reference_fasta = REFERENCE_PREP.out.reference_fasta
@@ -232,6 +233,9 @@ output {
         path 'summaries/run_summary'
     }
 
+    alignment_to_db {
+        path 'reference_prep/align_to_db/bams'
+    }
     covstats {
         path 'reference_prep/align_to_db/pass'
     }

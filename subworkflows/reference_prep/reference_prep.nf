@@ -1,4 +1,5 @@
-include { BWA_MEM_ALIGN_DB     } from '../../modules/reference_prep/bwa_mem_align_db'
+include { BWA_MEM_ALIGN_DB      } from '../../modules/reference_prep/bwa_mem_align_db'
+include { PANDEPTH              } from '../../modules/reference_prep/pandepth.nf'
 include { SELECT_REFERENCE      } from '../../modules/reference_prep/select_reference'                     
 include { MAKE_REFERENCE_FASTA  } from '../../modules/reference_prep/make_reference_fasta'
 
@@ -14,9 +15,13 @@ workflow REFERENCE_PREP {
         ch_reads,
         db
     )
+
+    PANDEPTH (
+        BWA_MEM_ALIGN_DB.out.alignment_to_db
+    )
                                                                                    
     SELECT_REFERENCE (                                                             
-        BWA_MEM_ALIGN_DB.out.covstats
+        PANDEPTH.out.covstats
     )                                                                              
 
     // Unpack and reformat the list so each item emitted by the channel is
@@ -44,7 +49,8 @@ workflow REFERENCE_PREP {
     reads   = ch_output.reads   // channel: [ val(meta), path(reads) ]
     ref     = ch_output.ref     // channel: [ val(meta), val(ref_info), path(ref_fasta) ]
     
-    covstats = BWA_MEM_ALIGN_DB.out.covstats
+    alignment_to_db = BWA_MEM_ALIGN_DB.out.alignment_to_db
+    covstats = PANDEPTH.out.covstats
     failed_assembly_summary = SELECT_REFERENCE.out.failed_assembly_summary
     reference_fasta = MAKE_REFERENCE_FASTA.out.ref
 }
