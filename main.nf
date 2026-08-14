@@ -185,6 +185,10 @@ workflow {
     final_consensus_bam             = PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam
     alignment_summary               = BUILD_ALIGNMENT_SUMMARY.out.alignment_summary
     run_summary                     = BUILD_RUN_SUMMARY.out.run_summary
+
+    covstats = REFERENCE_PREP.out.covstats
+    failed_assembly_summary = REFERENCE_PREP.out.failed_assembly_summary
+    reference_fasta = REFERENCE_PREP.out.reference_fasta
 }
 
 output {
@@ -226,5 +230,15 @@ output {
     }
     run_summary {
         path 'summaries/run_summary'
+    }
+
+    covstats {
+        path 'reference_prep/align_to_db/pass'
+    }
+    failed_assembly_summary {
+        path 'reference_prep/align_to_db/fail'
+    }
+    reference_fasta {
+        path 'reference_prep/make_reference_fasta'
     }
 }

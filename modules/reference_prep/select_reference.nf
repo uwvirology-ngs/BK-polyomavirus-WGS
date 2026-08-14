@@ -20,6 +20,7 @@ process SELECT_REFERENCE {
     select_reference.py \\
         -bbmap_covstats ${bbmap_db_covstats} \\
         -b ${prefix} \\
-        ${args}
+        -m ${params.ref_min_depth} \\
+        -p ${params.ref_min_cov}
     """
 }

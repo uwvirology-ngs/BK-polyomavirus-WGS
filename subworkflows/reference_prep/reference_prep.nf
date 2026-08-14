@@ -59,6 +59,10 @@ workflow REFERENCE_PREP {
     emit:
     reads   = ch_output.reads   // channel: [ val(meta), path(reads) ]
     ref     = ch_output.ref     // channel: [ val(meta), val(ref_info), path(ref_fasta) ]
+    
+    covstats = BWA_MEM_ALIGN_DB.out.covstats
+    failed_assembly_summary = SELECT_REFERENCE.out.failed_assembly_summary
+    reference_fasta = MAKE_REFERENCE_FASTA.out.ref
 }
 
 //
