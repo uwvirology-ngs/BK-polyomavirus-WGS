@@ -13,7 +13,7 @@ process PANDEPTH {
     script:
     """
     ## run pandepth to get coverage/depth reporting
-    pandepth -i ${meta.id}.bam -o ${meta.id} -t ${task.cpus}
+    pandepth -i ${bam} -o ${meta.id} -t ${task.cpus}
     gunzip -f ${meta.id}.chr.stat.gz
 
     ## replace abbreviated ref names in pandepth with originals from db

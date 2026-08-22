@@ -65,8 +65,7 @@ workflow {
     // select reference genome with revica-strm and combine with umi-extracted FASTQs
     REFERENCE_PREP (
         PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired,
-        file(params.db),
-        false
+        file(params.db)
     )
 
     // ----------------------------------- Back to Twist ------------------------------------

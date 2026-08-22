@@ -1,14 +1,20 @@
-include { BWA_MEM_ALIGN_DB      } from '../../modules/reference_prep/bwa_mem_align_db'
-include { PANDEPTH              } from '../../modules/reference_prep/pandepth.nf'
-include { SELECT_REFERENCE      } from '../../modules/reference_prep/select_reference'                     
-include { MAKE_REFERENCE_FASTA  } from '../../modules/reference_prep/make_reference_fasta'
+/*
+ * Modules
+ */
+include { BWA_MEM_ALIGN_DB     } from '../../modules/reference_prep/bwa_mem_align_db'
+include { PANDEPTH             } from '../../modules/reference_prep/pandepth.nf'
+include { SELECT_REFERENCE     } from '../../modules/reference_prep/select_reference'                     
+include { MAKE_REFERENCE_FASTA } from '../../modules/reference_prep/make_reference_fasta'
 
+/*
+ * Selects the best reference among the provided database using coverage 
+ * and depth statistics provided by Pandepth.
+ */
+workflow REFERENCE_PREP {        
 
-workflow REFERENCE_PREP {                                                 
     take:                                                                          
-    ch_reads    // channel: [ val(meta), path(reads) ]                  
-    db          // path: db
-    _use_mem2    // val: use_mem2
+    ch_reads    // channel: [ val(meta), path(reads) ]
+    db          // path:    file(params.db)
                                                                                    
     main:
     BWA_MEM_ALIGN_DB (

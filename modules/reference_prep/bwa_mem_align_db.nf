@@ -1,3 +1,9 @@
+/*
+ * Step 1 of the reference_prep subworkflow
+ *
+ * Align reads to the multifasta database for downstream evaluation 
+ * of coverage and depth stats.
+ */
 process BWA_MEM_ALIGN_DB {
 
     label 'process_high'
@@ -8,22 +14,16 @@ process BWA_MEM_ALIGN_DB {
     path(db)
 
     output:
-    tuple val(meta), path("*.bam"), path(db), emit: alignment_to_db
+    tuple val(meta), path("*.bam"), path(db),   emit: alignment_to_db
 
     script:
     """
-    # this flag combines 0x4 and 0x800, which means:
-    # 1. read is unmapped
-    # 2. read is supplementary alignment (chimeric, not representative alignment)
-    # we can't let these reads survive.
-    FLAG=2052
-
     bwa index ${db}
 
-    bwa mem \
-        ${db} \
-        ${fastqs} \
-        -t $task.cpus \
-        | samtools view -bS -F \$FLAG -@ 2 > ${meta.id}.bam
+    # read unmapped (0x4), supplementary alignment (0x800)
+    FLAG=2052
+
+    bwa mem ${db} ${fastqs} -t $task.cpus \\
+    | samtools view -b -F \$FLAG -@ 2 > "${meta.id}_aligned_to_db.bam"
     """
 }
