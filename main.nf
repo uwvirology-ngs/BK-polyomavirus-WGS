@@ -190,6 +190,7 @@ workflow {
     covstats = REFERENCE_PREP.out.covstats
     failed_assembly_summary = REFERENCE_PREP.out.failed_assembly_summary
     reference_fasta = REFERENCE_PREP.out.reference_fasta
+    pandepth = REFERENCE_PREP.out.pandepth
 }
 
 output {
@@ -235,6 +236,9 @@ output {
 
     alignment_to_db {
         path 'reference_prep/align_to_db/bams'
+    }
+    pandepth {
+        path 'reference_prep/align_to_db/pandepth'
     }
     covstats {
         path 'reference_prep/align_to_db/pass'

@@ -53,6 +53,7 @@ workflow REFERENCE_PREP {
     covstats = PANDEPTH.out.covstats
     failed_assembly_summary = SELECT_REFERENCE.out.failed_assembly_summary
     reference_fasta = MAKE_REFERENCE_FASTA.out.ref
+    pandepth = PANDEPTH.out.pandepth
 }
 
 //

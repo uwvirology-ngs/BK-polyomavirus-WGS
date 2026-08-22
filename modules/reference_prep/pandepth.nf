@@ -7,6 +7,7 @@ process PANDEPTH {
     tuple val(meta), path(bam), path(db)
 
     output:
+    tuple val(meta), path("*.stat"),    emit: pandepth
     tuple val(meta), path("*covstats.tsv"), emit: covstats
 
     script:
