@@ -1,10 +1,11 @@
 /*
  * Modules
  */
-include { BWA_MEM_ALIGN_DB     } from '../../modules/reference_prep/bwa_mem_align_db'
+include { BWA_MEM_ALIGN_DB     } from '../../modules/reference_prep/bwa_mem_align_db.nf'
 include { PANDEPTH             } from '../../modules/reference_prep/pandepth.nf'
-include { SELECT_REFERENCE     } from '../../modules/reference_prep/select_reference'                     
-include { MAKE_REFERENCE_FASTA } from '../../modules/reference_prep/make_reference_fasta'
+include { REFORMAT_PANDEPTH    } from '../../modules/reference_prep/reformat_pandepth.nf'
+include { SELECT_REFERENCE     } from '../../modules/reference_prep/select_reference.nf'                     
+include { MAKE_REFERENCE_FASTA } from '../../modules/reference_prep/make_reference_fasta.nf'
 
 /*
  * Selects the best reference among the provided database using coverage 
@@ -25,9 +26,14 @@ workflow REFERENCE_PREP {
     PANDEPTH (
         BWA_MEM_ALIGN_DB.out.alignment_to_db
     )
+
+    REFORMAT_PANDEPTH (
+        PANDEPTH.out.pandepth,
+        db
+    )
                                                                                    
     SELECT_REFERENCE (                                                             
-        PANDEPTH.out.covstats
+        REFORMAT_PANDEPTH.out.covstats
     )                                                                              
 
     // Unpack and reformat the list so each item emitted by the channel is
@@ -56,7 +62,7 @@ workflow REFERENCE_PREP {
     ref     = ch_output.ref     // channel: [ val(meta), val(ref_info), path(ref_fasta) ]
     
     alignment_to_db = BWA_MEM_ALIGN_DB.out.alignment_to_db
-    covstats = PANDEPTH.out.covstats
+    covstats = REFORMAT_PANDEPTH.out.covstats
     failed_assembly_summary = SELECT_REFERENCE.out.failed_assembly_summary
     reference_fasta = MAKE_REFERENCE_FASTA.out.ref
     pandepth = PANDEPTH.out.pandepth

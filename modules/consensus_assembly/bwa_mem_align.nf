@@ -51,7 +51,7 @@ process BWA_MEM_ALIGN {
 
     mapped=\$(samtools view -c -F \$FLAG -@ $task.cpus ${prefix}.bam)
 
-    prep_pandepth_output.py ${prefix}.chr.stat $ref ${prefix}_covstats.tsv \\
+    reformat_pandepth.py ${prefix}.chr.stat $ref ${prefix}_covstats.tsv \\
         --extra_cols "reads_mapped_${iter}:\$mapped"
 
     coverage=\$(awk 'BEGIN {FS="\t"} NR>1 {print \$5}' "${prefix}_covstats.tsv")

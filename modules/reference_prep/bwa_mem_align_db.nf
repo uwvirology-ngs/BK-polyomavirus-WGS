@@ -14,7 +14,7 @@ process BWA_MEM_ALIGN_DB {
     path(db)
 
     output:
-    tuple val(meta), path("*.bam"), path(db),   emit: alignment_to_db
+    tuple val(meta), path("*.bam"), emit: alignment_to_db
 
     script:
     """
