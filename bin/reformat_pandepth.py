@@ -1,66 +1,61 @@
 #!/usr/bin/env python3
 
 import argparse
-import sys
-import csv
+import pandas as pd
 
-PANDEPTH_COLS = ["chr", "length", "covered_site", "depth", "coverage", 	"meandepth"]
+def clean_pandepth(infile: str, ref_db: str) -> pd.DataFrame:
+    """
+    Returns a pandas DataFrame reflecting Pandepth stats 
+    as well as additonal reference genome information.
 
-def parse_pandepth(file, ref, out, extra_cols):
+    :param infile:  filepath to Pandepth output
+    :param ref_db:  filepath to reference genome database
 
-    ref_map = {}
-
-    with open(ref) as refs:
-        for line in refs.readlines():
-            if line.startswith(">"):
-                ref_name, ref_acc = line[1:].strip("\n"), line[1:].strip("\n").split(" ")[0]
+    :returns:       pandas DataFrame reflecting Pandepth stats
+    """
+    # map reference genome accessions to full reference information
+    ref_map: dict[str, str] = {}
+    with open(ref_db, 'r') as db:
+        for line in db:
+            if line.startswith('>'):
+                ref_name = line[1:].strip('\n')
+                ref_acc = ref_name.split(' ')[0]
                 ref_map[ref_acc] = ref_name
 
-    try: 
-        with open(file, "r") as inf:
-            with open(out, "w", newline='') as outf:
-                csv_reader = csv.DictReader(inf.readlines()[1:-1], fieldnames=PANDEPTH_COLS, delimiter = "\t")
-                new_values = []
-                new_cols = []
+    # reformat pandepth output, add comprehensive reference genome information
+    df_pandepth = pd.read_csv(infile, sep='\t')
+    df_pandepth = df_pandepth.rename(columns = {
+        "#Chr": "accession",
+        "Length": "length",
+        "CoveredSite": "covered_site",
+        "TotalDepth": "total_depth",
+        "Coverage(%)": "coverage",
+        "MeanDepth": "mean_depth"
+    })
+    df_pandepth = df_pandepth[~df_pandepth["accession"].str.startswith('##')]
+    df_pandepth = df_pandepth.astype({
+        "accession": "string",
+        "length": "int64",
+        "covered_site": "int64",
+        "total_depth": "int64",
+        "coverage": "float64",
+        "mean_depth": "float64",
+    })
+    df_pandepth["accession"] = df_pandepth["accession"].map(ref_map)
 
-                cols = PANDEPTH_COLS
+    df_pandepth = df_pandepth.sort_values(by = "coverage", ascending = False)
 
-                if extra_cols:
-                    for c in extra_cols:
-                        c = c.split(":")
-                        assert len(c) == 2
-                        new_cols.append(c[0])
-                        cols.append(c[0])
-                        new_values.append(c[1])
-
-                csv_writer = csv.DictWriter(outf, fieldnames=cols, delimiter = "\t")
-
-                csv_writer.writeheader()
-
-                for row in csv_reader:
-                    # replace just the accesion with the entire name
-                    # a miss should never happen unless something REALLY GOES WRONG, 
-                    # but will error handle just in case
-                    try:
-                        row["chr"] = ref_map[row["chr"]]
-                    except KeyError:
-                        sys.exit("Detected discordance between reference names in pandepth output file and reference! Check work dir output!")
-
-                    j = 0
-                    for i, col in enumerate(new_cols):
-                        row[col] = str(new_values[i])
-
-                    csv_writer.writerow(row)
-
-    except FileNotFoundError: 
-        sys.exit("Failed to open pandepth file!")
+    return df_pandepth
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("input", help = "unzipped pandepth output file")
-    parser.add_argument("ref", help = "reference fasta to use for replacing header")
-    parser.add_argument("out", help = "name of output")
-    parser.add_argument("--extra_cols", required = False, default = [], help = "additional columns to input, in the format of COLNAME:COLVALUE", nargs='+')
+
+    arg_names: list[str] = ["infile", "ref", "outfile"]
+    for a in arg_names:
+        parser.add_argument(a)
     args = parser.parse_args()
 
-    parse_pandepth(args.input, args.ref, args.out, args.extra_cols)
+    pandepth: pd.DataFrame = clean_pandepth(args.infile, args.ref)
+
+    # write reformatted pandepth stats directly to the workdir
+    pandepth.to_csv(args.outfile, sep = '\t', index = False)

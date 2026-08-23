@@ -6,7 +6,7 @@
 process REFORMAT_PANDEPTH {
 
     label 'process_low'
-    container 'quay.io/epil02/revica-strm:0.0.5'
+    container 'aidantshea/revica:latest'
 
     input: 
     tuple val(meta), path(pandepth)
