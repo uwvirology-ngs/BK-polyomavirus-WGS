@@ -1,7 +1,7 @@
 process SELECT_REFERENCE {
     tag "$meta.id"
     label 'process_single'
-    container 'quay.io/biocontainers/mulled-v2-77320db00eefbbf8c599692102c3d387a37ef02a:08144a66f00dc7684fad061f1466033c0176e7ad-0'
+    label 'reference_prep'
     
     input:
     tuple val(meta), path(bbmap_db_covstats)

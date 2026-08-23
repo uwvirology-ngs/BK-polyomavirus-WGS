@@ -6,7 +6,7 @@
 process PANDEPTH {
 
     label 'process_low'
-    container 'quay.io/epil02/revica-strm:0.0.5'
+    label 'reference_prep'
 
     input: 
     tuple val(meta), path(bam)

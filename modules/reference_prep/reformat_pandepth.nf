@@ -6,7 +6,7 @@
 process REFORMAT_PANDEPTH {
 
     label 'process_low'
-    container 'aidantshea/revica:latest'
+    label 'reference_prep'
 
     input: 
     tuple val(meta), path(pandepth)
