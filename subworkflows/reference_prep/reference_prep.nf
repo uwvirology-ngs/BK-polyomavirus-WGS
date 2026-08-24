@@ -66,6 +66,7 @@ workflow REFERENCE_PREP {
     failed_assembly_summary = SELECT_REFERENCE.out.failed_assembly_summary
     reference_fasta = MAKE_REFERENCE_FASTA.out.ref
     pandepth = PANDEPTH.out.pandepth
+    refs_tsv = SELECT_REFERENCE.out.refs_tsv
 }
 
 //

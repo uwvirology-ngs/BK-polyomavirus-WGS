@@ -1,26 +1,27 @@
+/*
+ * Step 4 of the reference_prep subworkflow
+ * 
+ * Selects reference genomes for which alignment against produces acceptable 
+ * coverage and depth statistics by Pandepth.
+ */
 process SELECT_REFERENCE {
-    tag "$meta.id"
+
     label 'process_single'
     label 'reference_prep'
     
     input:
-    tuple val(meta), path(bbmap_db_covstats)
+    tuple val(meta), path(covstats)
 
     output:
     tuple val(meta), path("*_refs.tsv"),            optional: true, emit: refs_tsv
     tuple val(meta), path("*_failed_assembly.tsv"), optional: true, emit: failed_assembly_summary
 
-    when:
-    task.ext.when == null || task.ext.when
-
     script:
-    def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
     """
     select_reference.py \\
-        -bbmap_covstats ${bbmap_db_covstats} \\
-        -b ${prefix} \\
-        -m ${params.ref_min_depth} \\
-        -p ${params.ref_min_cov}
+        ${covstats} \\
+        --sample_id ${meta.id} \\
+        --min_coverage ${params.ref_min_cov} \\
+        --min_depth ${params.ref_min_depth}
     """
 }

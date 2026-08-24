@@ -2,46 +2,42 @@
 
 import argparse
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Find the accession number associated with the highest bbmap median_fold for each virus species.')
-    parser.add_argument('-bbmap_covstats', required=True, type=str, help='bbmap covstats output file')
-    parser.add_argument('-b', required=True, type=str, help='sample basename')
-    parser.add_argument('-m', type=int, default=3, help='minimum median threshold in bbmap covstats output for a reference to be considered. (Default 3)')
-    parser.add_argument('-p', type=int, default=70, help='minimum covered percent in bbmap covstats output for a reference to be considered. (Default 70)')
-    args = parser.parse_args()
+def select_reference(covstats_path, sample_id: str, min_depth: int, min_coverage: int) -> None:
+    """
+    DESCRIPTION
+    """
+    # read in covstats
+    covstats = open(covstats_path, 'r').readlines()
+    header = covstats[0]
+    records = covstats[1:]
+    
+    # find covstats records which meet coverage and depth criteria
+    passing_records = []
+    records = [record.strip() for record in records if len(record) > 0]
+    for record in records:
+        reference_info = record.split('\t')
+        coverage = float(reference_info[4])
+        depth = float(reference_info[5])
+        if coverage >= min_coverage and depth > min_depth:
+            passing_records.append(reference_info)
 
-    init_ref_candidates = []
-    to_sort = []
-    inf = open(args.bbmap_covstats, 'r').readlines()
-    header = inf[0]
-    rec = inf[1:]
-
-    # add to list any reference that passes the median coverage and mininum covered percent threshold
-    for i in rec:
-        if len(i) > 0:
-            temp = i.split('\t')
-            if float(temp[5]) >= args.m and float(temp[4]) >= args.p:
-                # init_ref_candidates.append(temp[0])
-                to_sort.append(temp)
-
-    sorted_by_coverage_depth = sorted(to_sort, key = lambda x: (x[4], x[5]), reverse = True)
+    # sort by coverage and depth
+    sorted_by_coverage_depth = sorted(passing_records, key = lambda x: (x[4], x[5]), reverse = True)
     init_ref_candidates = [entry[0] for entry in sorted_by_coverage_depth]
 
-    # create a dictionary of references to be used for consensus calling
-    init_ref_header = {}
-    for i in init_ref_candidates: 
-        # add .split(' ')[0] to get just the accession 
-        acc = i.split(' ')[0]
-        # get header tag 
-        tag = i.split(' ')[1]
-        # get header info
-        info = " ".join(i.split(' ')[2:])
+    # map reference tags to accession and header info
+    init_ref_header: dict[str, list] = {}
+    for candidate in init_ref_candidates: 
+        meta = candidate.split(' ')
+        acc = meta[0]   # accession
+        tag = meta[1]   # header tag
+        info = ' '.join(meta[2:])   # get header info
         if not tag in init_ref_header: 
             init_ref_header[tag] = [acc, info]
-            
+
     # if reference(s) selected, output relevant info to file
     if init_ref_header:
-        output_file_name = args.b + '_refs.tsv'
+        output_file_name = sample_id + '_refs.tsv'
         output_file = open(output_file_name, 'a+')
         for i in init_ref_header:
             # output format: reference accession <tab> reference header tag <tab> reference header info
@@ -50,12 +46,23 @@ if __name__ == "__main__":
 
     # no reference selected, output reference with highest covered percent and read distribution info
     else:
-        output_file_name = args.b + '_failed_assembly.tsv'
+        output_file_name = sample_id + '_failed_assembly.tsv'
         output_file = open(output_file_name, 'w')
 
-        output_text = str(sorted(rec, key=lambda line: float(line.split('\t')[4]), reverse=True)[0])
+        output_text = str(sorted(records, key=lambda line: float(line.split('\t')[4]), reverse=True)[0])
         output_file.write(header)
         output_file.write('\n')
         output_file.write(output_text)
         output_file.write('\n')
         output_file.close()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("covstats")
+    parser.add_argument("--sample_id", type = str)
+    parser.add_argument("--min_depth", type = int)
+    parser.add_argument("--min_coverage", type = int)
+    args = parser.parse_args()
+
+    select_reference(args.covstats, args.sample_id, args.min_depth, args.min_coverage)

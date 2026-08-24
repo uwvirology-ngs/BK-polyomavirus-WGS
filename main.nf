@@ -190,6 +190,7 @@ workflow {
     failed_assembly_summary = REFERENCE_PREP.out.failed_assembly_summary
     reference_fasta = REFERENCE_PREP.out.reference_fasta
     pandepth = REFERENCE_PREP.out.pandepth
+    refs_tsv = REFERENCE_PREP.out.refs_tsv
 }
 
 output {
@@ -247,5 +248,8 @@ output {
     }
     reference_fasta {
         path 'reference_prep/make_reference_fasta'
+    }
+    refs_tsv {
+        path 'reference_prep/refs_tsv'
     }
 }
