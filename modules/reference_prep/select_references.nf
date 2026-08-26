@@ -1,5 +1,5 @@
 /*
- * Step 4 of the reference_prep subworkflow
+ * Step 3 of the reference_prep subworkflow
  * 
  * Selects reference genomes for which alignment against produces acceptable 
  * coverage and depth statistics by Pandepth.
@@ -14,9 +14,8 @@ process SELECT_REFERENCES {
     path(db)
 
     output:
-    tuple val(meta), path("*covstats.tsv"),         emit: covstats
-    tuple val(meta), path("*_refs.tsv"),            optional: true, emit: refs_tsv
-    tuple val(meta), path("*_failed_assembly.tsv"), optional: true, emit: failed_assembly_summary
+    tuple val(meta), path("*covstats.tsv"),     emit: covstats
+    tuple val(meta), path("*_refs.tsv"),        emit: refs_tsv, optional: true
 
     script:
     """

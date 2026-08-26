@@ -185,12 +185,12 @@ workflow {
     alignment_summary               = BUILD_ALIGNMENT_SUMMARY.out.alignment_summary
     run_summary                     = BUILD_RUN_SUMMARY.out.run_summary
 
+    // reference_prep
     alignment_to_db = REFERENCE_PREP.out.alignment_to_db
-    covstats = REFERENCE_PREP.out.covstats
-    failed_assembly_summary = REFERENCE_PREP.out.failed_assembly_summary
-    reference_fasta = REFERENCE_PREP.out.reference_fasta
-    pandepth = REFERENCE_PREP.out.pandepth
-    refs_tsv = REFERENCE_PREP.out.refs_tsv
+    pandepth        = REFERENCE_PREP.out.pandepth
+    covstats        = REFERENCE_PREP.out.covstats
+    refs_tsv        = REFERENCE_PREP.out.refs_tsv
+    selected_refs   = REFERENCE_PREP.out.selected_refs
 }
 
 output {
@@ -234,22 +234,20 @@ output {
         path 'summaries/run_summary'
     }
 
+    // reference_prep
     alignment_to_db {
-        path 'reference_prep/align_to_db/bams'
+        path 'reference_prep/bams'
     }
     pandepth {
-        path 'reference_prep/align_to_db/pandepth'
+        path 'reference_prep/pandepth'
     }
     covstats {
-        path 'reference_prep/align_to_db/pass'
-    }
-    failed_assembly_summary {
-        path 'reference_prep/align_to_db/fail'
-    }
-    reference_fasta {
-        path 'reference_prep/make_reference_fasta'
+        path 'reference_prep/pass/covstats'
     }
     refs_tsv {
-        path 'reference_prep/refs_tsv'
+        path 'reference_prep/pass/refs_tsv'
+    }
+    selected_refs {
+        path 'reference_prep/pass/selected_refs'
     }
 }

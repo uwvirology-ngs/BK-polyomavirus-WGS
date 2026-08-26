@@ -1,7 +1,10 @@
 /*
- * TODO
+ * Step 4 of the reference_prep subworkflow
+ *
+ * Emits a copy of a particular reference genome for 
+ * any set of reads assigned to it. 
  */
-process MAKE_REFERENCE_FASTA {
+process SAMTOOLS_FAIDX {
 
     label 'process_single'
     label 'reference_prep'
@@ -11,7 +14,7 @@ process MAKE_REFERENCE_FASTA {
     path db
 
     output:
-    tuple val(meta), val(ref_info), path("*.fa"),   emit: ref
+    tuple val(meta), val(ref_info), path("*.fa"),   emit: selected_refs
 
     script:
     """

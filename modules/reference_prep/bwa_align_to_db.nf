@@ -1,10 +1,10 @@
 /*
  * Step 1 of the reference_prep subworkflow
  *
- * Align reads to the multifasta database for downstream evaluation 
+ * Aligns reads to the multifasta database for downstream evaluation 
  * of coverage and depth stats.
  */
-process BWA_MEM_ALIGN_DB {
+process BWA_ALIGN_TO_DB {
 
     label 'process_high'
     label 'reference_prep'
