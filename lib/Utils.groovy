@@ -1,4 +1,23 @@
 class Utils {
+
+    /*
+     * Adds reference genome information as a secondary meta map in 
+     * the form of [ [ meta.id, ... ], [ acc, tag, description ] ]
+     * and returns a List of meta + ref_info maps
+     */
+    public static ArrayList add_ref_info_to_meta(meta, refs_tsv) {
+        def new_metadata = new ArrayList<>()
+        
+        refs_tsv.text.readLines().collect { line ->
+            def fields = line.split('\t')
+            new_metadata.add(
+                [ meta, [ acc: fields[0], tag: fields[1], header: fields[2].toString() ] ]
+            )
+        }
+
+        return new_metadata
+    }
+
     public static String getAnnotation(String s) {
         String ref = s.substring(s.lastIndexOf('_') + 1)
         return ref

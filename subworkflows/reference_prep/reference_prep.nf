@@ -3,23 +3,23 @@
  */
 include { BWA_MEM_ALIGN_DB     } from '../../modules/reference_prep/bwa_mem_align_db.nf'
 include { PANDEPTH             } from '../../modules/reference_prep/pandepth.nf'
-include { REFORMAT_PANDEPTH    } from '../../modules/reference_prep/reformat_pandepth.nf'
 include { SELECT_REFERENCES    } from '../../modules/reference_prep/select_references.nf'                     
 include { MAKE_REFERENCE_FASTA } from '../../modules/reference_prep/make_reference_fasta.nf'
 
 /*
  * Selects the best reference among the provided database using coverage 
- * and depth statistics provided by Pandepth.
+ * and depth statistics provided by Pandepth. Adds reference genome 
+ * information (ref_info) as a secondary map adjacent to meta.
  */
 workflow REFERENCE_PREP {        
 
     take:                                                                          
-    ch_reads    // channel: [ val(meta), path(reads) ]
+    reads_ch    // channel: [ val(meta), path(reads) ]
     db          // path:    file(params.db)
                                                                                    
     main:
     BWA_MEM_ALIGN_DB (
-        ch_reads,
+        reads_ch,
         db
     )
 
@@ -32,30 +32,26 @@ workflow REFERENCE_PREP {
         db
     )
 
-    // Unpack and reformat the list so each item emitted by the channel is
-    // [ [ meta.id, meta.single_end ], [ ref_inf.acc, ref_info.tag, ref_info.header ] ]              
-    SELECT_REFERENCES.out.refs_tsv
-        .map { meta, refs_tsv -> add_ref_info_to_meta(meta, refs_tsv) }                                                
-        .flatten().collate( 2,false )
-        .set { ch_new_meta }
+    // use meta and ref_info maps: [ [ meta.id, ... ], [ acc, tag, description ] ]              
+    ref_info_ch = SELECT_REFERENCES.out.refs_tsv
+        .flatMap { meta, refs_tsv -> Utils.add_ref_info_to_meta(meta, refs_tsv) }
 
     MAKE_REFERENCE_FASTA (                                                                     
-        ch_new_meta,                                             
-        db                                                                 
-    )                                                                              
+        ref_info_ch,
+        db
+    )
 
-    // Create copies of reads to match the number of references selected        
-    ch_reads
+    // duplicate the reads for each selected reference genome
+    output_ch = reads_ch
         .cross(MAKE_REFERENCE_FASTA.out.ref)
-        .multiMap { it -> 
-            reads: it[0]
-            ref:   it[1]
+        .multiMap { reads_tuple, ref_info_tuple -> 
+            reads:  reads_tuple
+            ref:    ref_info_tuple
         }
-        .set { ch_output }
 
     emit:
-    reads   = ch_output.reads   // channel: [ val(meta), path(reads) ]
-    ref     = ch_output.ref     // channel: [ val(meta), val(ref_info), path(ref_fasta) ]
+    reads   = output_ch.reads   // channel: [ val(meta), path(reads) ]
+    ref     = output_ch.ref     // channel: [ val(meta), val(ref_info), path(ref_fasta) ]
     
     alignment_to_db = BWA_MEM_ALIGN_DB.out.alignment_to_db
     covstats = SELECT_REFERENCES.out.covstats
@@ -63,21 +59,4 @@ workflow REFERENCE_PREP {
     reference_fasta = MAKE_REFERENCE_FASTA.out.ref
     pandepth = PANDEPTH.out.pandepth
     refs_tsv = SELECT_REFERENCES.out.refs_tsv
-}
-
-//
-// Parse the output refs_tsv file from SELECT_REFERENCES and return a LIST of
-// [ [ meta.id, meta.single_end ], [ ref_inf.acc, ref_info.tag, ref_info.header ] ]
-// for the selected reference(s)          
-def add_ref_info_to_meta(meta, refs_tsv) {
-    def new_meta_list = []
-
-    refs_tsv.text.eachLine { line ->
-        def new_meta = []
-        def fields = line.split('\t')
-        new_meta = [ meta, [ acc: fields[0], tag: fields[1], header: fields[2].toString() ] ]
-        new_meta_list.add(new_meta)
-    }
-    
-    return new_meta_list
 }
