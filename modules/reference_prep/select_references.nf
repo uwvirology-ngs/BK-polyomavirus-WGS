@@ -14,8 +14,10 @@ process SELECT_REFERENCES {
     path(db)
 
     output:
-    tuple val(meta), path("*covstats.tsv"),     emit: covstats
-    tuple val(meta), path("*_refs.tsv"),        emit: refs_tsv, optional: true
+    tuple val(meta), path("*_covstats.tsv"),        emit: covstats
+    tuple val(meta), path("*_covstats_pass.tsv"),   emit: covstats_pass
+    tuple val(meta), path("*_covstats_fail.tsv"),   emit: covstats_fail
+    tuple val(meta), path("*_refs.tsv"),            emit: refs_tsv, optional: true
 
     script:
     """

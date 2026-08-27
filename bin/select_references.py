@@ -35,11 +35,16 @@ def reformat_pandepth(pandepth: str, ref_db: str) -> pd.DataFrame:
     with open(ref_db, 'r') as db:
         for line in db:
             if line.startswith('>'):
-                ref_name = line[1:].strip()
-                ref_acc = ref_name.split(' ')[0]
-                ref_info_map[ref_acc] = ref_name
+                fasta_header = line[1:].strip()
+                ref_acc = fasta_header.split(' ')[0]
+                ref_info_map[ref_acc] = fasta_header
 
-    covstats_df["ref_info"] = covstats_df["accession"].map(ref_info_map)
+    covstats_df["fasta_header"] = covstats_df["accession"].map(ref_info_map)
+
+    # build columns for the reference genome tag and description
+    ref_info = covstats_df["fasta_header"].str.split(' ')
+    covstats_df["tag"] = ref_info.str[1]
+    covstats_df["description"] = ref_info.str[2:].str.join(' ')
 
     covstats_df = covstats_df.sort_values(
         by = ["coverage", "mean_depth"], ascending = False
@@ -49,7 +54,7 @@ def reformat_pandepth(pandepth: str, ref_db: str) -> pd.DataFrame:
 
 def select_references(
         covstats: pd.DataFrame, min_coverage: int, min_depth: int
-    ) -> pd.DataFrame | None:
+    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Selects acceptable reference genomes as determined by coverage and depth 
     statistics from Pandepth, then returns a pandas DataFrame with their
@@ -59,24 +64,19 @@ def select_references(
     :param  min_coverage:   minimum acceptable coverage for selection
     :param  min_depth:      minimum acceptable depth for selection
 
-    :returns:   A pandas DataFrame with the accesion, tag, and description
-                of each passing reference genome.
+    :returns:   A tuple of pandas DataFrames including covstats for passing vs
+                failing references and a simple tsv with the accesion, tag, and 
+                description of each acceptable reference genome.
     """
-    # all reference genomes passing coverage and depth thresholds are selected
-    covstats_df = covstats[
-        (covstats["coverage"] >= min_coverage) & (covstats["mean_depth"] >= min_depth)
-    ].copy()
+    # select reference genomes by minimum coverage and mean_depth per Pandepth
+    filter = (covstats["coverage"] >= min_coverage) & (covstats["mean_depth"] >= min_depth)
+    covstats_pass = covstats.loc[ filter].copy()
+    covstats_fail = covstats.loc[~filter].copy()
 
-    # build columns for the reference genome tag and description
-    ref_info = covstats_df["ref_info"].str.split(' ')
-    covstats_df["tag"] = ref_info.str[1]
-    covstats_df["description"] = ref_info.str[2:].str.join(' ')
+    # build simple tsv for shuttling accepted references to downstream processes
+    refs_tsv = covstats_pass[["accession", "tag", "description"]].copy()
 
-    # return ref info for passing reference genomes, or None if nothing passes
-    if covstats_df.empty:
-        return None
-
-    return covstats_df[["accession", "tag", "description"]]
+    return covstats_pass, covstats_fail, refs_tsv
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -93,6 +93,16 @@ if __name__ == "__main__":
     covstats.to_csv(args.sample_id + "_covstats.tsv", sep = '\t', index = False)
 
     # select acceptable reference genomes and write their information to disk
-    refs_tsv = select_references(covstats, args.min_coverage, args.min_depth)
-    if refs_tsv is not None:
-        refs_tsv.to_csv(args.sample_id + "_refs.tsv", sep = '\t', header = False, index = False)  
+    covstats_pass, covstats_fail, refs_tsv = select_references(
+        covstats, args.min_coverage, args.min_depth
+    )
+    covstats_pass.to_csv(
+        args.sample_id + "_covstats_pass.tsv", sep = '\t', header = False, index = False
+    )
+    covstats_fail.to_csv(
+        args.sample_id + "_covstats_fail.tsv", sep = '\t', header = False, index = False
+    )
+    if not refs_tsv.empty:
+        refs_tsv.to_csv(
+            args.sample_id + "_refs.tsv", sep = '\t', header = False, index = False
+        )

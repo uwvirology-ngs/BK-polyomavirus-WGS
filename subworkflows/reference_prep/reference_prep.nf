@@ -57,6 +57,8 @@ workflow REFERENCE_PREP {
     alignment_to_db = BWA_ALIGN_TO_DB.out.alignment_to_db
     pandepth        = PANDEPTH.out.pandepth
     covstats        = SELECT_REFERENCES.out.covstats
+    covstats_pass   = SELECT_REFERENCES.out.covstats_pass
+    covstats_fail   = SELECT_REFERENCES.out.covstats_fail
     refs_tsv        = SELECT_REFERENCES.out.refs_tsv
     selected_refs   = SAMTOOLS_FAIDX.out.selected_refs
 }
