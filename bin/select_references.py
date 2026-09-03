@@ -94,10 +94,10 @@ if __name__ == "__main__":
         covstats, args.min_coverage, args.min_depth
     )
     covstats_pass.to_csv(
-        args.sample_id + "_covstats_pass.tsv", sep = '\t', header = False, index = False
+        args.sample_id + "_covstats_pass.tsv", sep = '\t', header = True, index = False
     )
     covstats_fail.to_csv(
-        args.sample_id + "_covstats_fail.tsv", sep = '\t', header = False, index = False
+        args.sample_id + "_covstats_fail.tsv", sep = '\t', header = True, index = False
     )
     if not refs_tsv.empty:
         refs_tsv.to_csv(
