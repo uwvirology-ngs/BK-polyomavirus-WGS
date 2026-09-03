@@ -10,7 +10,7 @@ process SELECT_REFERENCES {
     label 'reference_prep'
     
     input:
-    tuple val(meta), path(pandepth)
+    tuple val(meta), path(samtools_coverage)
     path(db)
 
     output:
@@ -21,8 +21,7 @@ process SELECT_REFERENCES {
 
     script:
     """
-    select_references.py \\
-        ${pandepth} ${db} ${meta.id} \\
+    select_references.py ${samtools_coverage} ${db} ${meta.id} \\
         --min_coverage ${params.ref_min_cov} \\
         --min_depth ${params.ref_min_depth}
     """

@@ -2,7 +2,7 @@
  * Modules
  */
 include { BWA_ALIGN_TO_DB   } from '../../modules/reference_prep/bwa_align_to_db.nf'
-include { PANDEPTH          } from '../../modules/reference_prep/pandepth.nf'
+include { SAMTOOLS_COVERAGE } from '../../modules/reference_prep/samtools_coverage.nf'
 include { SELECT_REFERENCES } from '../../modules/reference_prep/select_references.nf'
 include { SAMTOOLS_FAIDX    } from '../../modules/reference_prep/samtools_faidx.nf'
 
@@ -23,12 +23,12 @@ workflow REFERENCE_PREP {
         db
     )
 
-    PANDEPTH (
+    SAMTOOLS_COVERAGE (
         BWA_ALIGN_TO_DB.out.alignment_to_db
     )
                                                                             
     SELECT_REFERENCES (
-        PANDEPTH.out.pandepth,
+        SAMTOOLS_COVERAGE.out.samtools_coverage,
         db
     )
 
@@ -50,15 +50,16 @@ workflow REFERENCE_PREP {
         }
 
     emit:
-    reads   = output_ch.reads   // channel: [ val(meta), path(reads) ]
-    ref     = output_ch.ref     // channel: [ val(meta), val(ref_info), path(ref_fasta) ]
+    // channels
+    reads   = output_ch.reads   // [ val(meta), path(reads) ]
+    ref     = output_ch.ref     // [ val(meta), val(ref_info), path(ref_fasta) ]
     
     // outfiles
-    alignment_to_db = BWA_ALIGN_TO_DB.out.alignment_to_db
-    pandepth        = PANDEPTH.out.pandepth
-    covstats        = SELECT_REFERENCES.out.covstats
-    covstats_pass   = SELECT_REFERENCES.out.covstats_pass
-    covstats_fail   = SELECT_REFERENCES.out.covstats_fail
-    refs_tsv        = SELECT_REFERENCES.out.refs_tsv
-    selected_refs   = SAMTOOLS_FAIDX.out.selected_refs
+    alignment_to_db     = BWA_ALIGN_TO_DB.out.alignment_to_db
+    samtools_coverage   = SAMTOOLS_COVERAGE.out.samtools_coverage
+    covstats            = SELECT_REFERENCES.out.covstats
+    covstats_pass       = SELECT_REFERENCES.out.covstats_pass
+    covstats_fail       = SELECT_REFERENCES.out.covstats_fail
+    refs_tsv            = SELECT_REFERENCES.out.refs_tsv
+    selected_refs       = SAMTOOLS_FAIDX.out.selected_refs
 }

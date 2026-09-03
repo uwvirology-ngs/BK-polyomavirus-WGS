@@ -3,34 +3,31 @@
 import argparse
 import pandas as pd
 
-def reformat_pandepth(pandepth: str, ref_db: str) -> pd.DataFrame:
+def build_covstats(samtools_cov: str, ref_db: str) -> pd.DataFrame:
     """
-    Returns a pandas DataFrame reflecting Pandepth stats 
-    as well as additonal reference genome information.
+    Returns a pandas DataFrame reflecting read statistics from 
+    Samtools Coverage output useful for reference selection.
 
-    :param pandepth:    filepath to Pandepth output
-    :param ref_db:      filepath to reference genome database
+    :param samtools_cov:    path to Samtools Coverage output
+    :param ref_db:          path to reference genome database
 
-    :returns:       pandas DataFrame reflecting Pandepth stats
+    :returns:   coverage statistics as a pandas DataFrame
     """
-    # read in Pandepth tsv, removing metadata rows from the bottom
-    covstats_df = pd.read_csv(pandepth, sep='\t')
-    covstats_df = covstats_df[~covstats_df["#Chr"].str.startswith('##')]
+    # read in Samtools Coverage output tsv
+    covstats_df: pd.DataFrame = pd.read_csv(samtools_cov, sep='\t')
 
-    # reformat and validate Pandepth columns
-    covstats_df = covstats_df.rename(columns = {
-        "#Chr": "accession", "Length": "length",
-        "CoveredSite": "covered_site", "TotalDepth": "total_depth",
-        "Coverage(%)": "coverage", "MeanDepth": "mean_depth"
-    })
+    # reformat and validate column types
+    covstats_df = covstats_df.rename(columns = { "#rname": "accession" })
     covstats_df = covstats_df.astype({
-        "accession": "string", "length": "int64",
-        "covered_site": "int64", "total_depth": "int64",
-        "coverage": "float64", "mean_depth": "float64",
+        "accession": "string", 
+        "startpos":  "int64",       "endpos":    "int64",
+        "numreads":  "int64",       "covbases":  "int64", 
+        "coverage":  "float64",     "meandepth": "float64", 
+        "meanbaseq": "float64",     "meanmapq":  "float64"
     })
 
-    # Pandepth includes only the accession number in its output, so we 
-    # add back the rest of the reference genome information here
+    # Samtools includes only the accession number in its output, so 
+    # we reintroduce additional reference genome information here
     ref_info_map: dict[str, str] = dict()
     with open(ref_db, 'r') as db:
         for line in db:
@@ -41,20 +38,20 @@ def reformat_pandepth(pandepth: str, ref_db: str) -> pd.DataFrame:
 
     covstats_df["fasta_header"] = covstats_df["accession"].map(ref_info_map)
 
-    # build columns for the reference genome tag and description
+    # include separate columns for the reference tag and description
     ref_info = covstats_df["fasta_header"].str.split(' ')
-    covstats_df["tag"] = ref_info.str[1]
-    covstats_df["description"] = ref_info.str[2:].str.join(' ')
+    covstats_df["tag"]          = ref_info.str[1]
+    covstats_df["description"]  = ref_info.str[2:].str.join(' ')
 
     covstats_df = covstats_df.sort_values(
-        by = ["coverage", "mean_depth"], ascending = False
+        by = ["coverage", "meandepth"], ascending = False
     )
 
     return covstats_df
 
 def select_references(
         covstats: pd.DataFrame, min_coverage: int, min_depth: int
-    ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    ) -> tuple:
     """
     Selects acceptable reference genomes as determined by coverage and depth 
     statistics from Pandepth, then returns a pandas DataFrame with their
@@ -69,7 +66,7 @@ def select_references(
                 description of each acceptable reference genome.
     """
     # select reference genomes by minimum coverage and mean_depth per Pandepth
-    filter = (covstats["coverage"] >= min_coverage) & (covstats["mean_depth"] >= min_depth)
+    filter = (covstats["coverage"] >= min_coverage) & (covstats["meandepth"] >= min_depth)
     covstats_pass = covstats.loc[ filter].copy()
     covstats_fail = covstats.loc[~filter].copy()
 
@@ -89,7 +86,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # build covstats from pandepth output and write to disk
-    covstats: pd.DataFrame = reformat_pandepth(args.pandepth, args.database)
+    covstats: pd.DataFrame = build_covstats(args.pandepth, args.database)
     covstats.to_csv(args.sample_id + "_covstats.tsv", sep = '\t', index = False)
 
     # select acceptable reference genomes and write their information to disk

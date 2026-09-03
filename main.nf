@@ -186,13 +186,13 @@ workflow {
     run_summary                     = BUILD_RUN_SUMMARY.out.run_summary
 
     // reference_prep
-    alignment_to_db = REFERENCE_PREP.out.alignment_to_db
-    pandepth        = REFERENCE_PREP.out.pandepth
-    covstats        = REFERENCE_PREP.out.covstats
-    covstats_pass   = REFERENCE_PREP.out.covstats_pass
-    covstats_fail   = REFERENCE_PREP.out.covstats_fail
-    refs_tsv        = REFERENCE_PREP.out.refs_tsv
-    selected_refs   = REFERENCE_PREP.out.selected_refs
+    alignment_to_db     = REFERENCE_PREP.out.alignment_to_db
+    samtools_coverage   = REFERENCE_PREP.out.samtools_coverage
+    covstats            = REFERENCE_PREP.out.covstats
+    covstats_pass       = REFERENCE_PREP.out.covstats_pass
+    covstats_fail       = REFERENCE_PREP.out.covstats_fail
+    refs_tsv            = REFERENCE_PREP.out.refs_tsv
+    selected_refs       = REFERENCE_PREP.out.selected_refs
 }
 
 output {
@@ -240,8 +240,8 @@ output {
     alignment_to_db {
         path 'reference_prep/align_to_db_bams'
     }
-    pandepth {
-        path 'reference_prep/pandepth'
+    samtools_coverage {
+        path 'reference_prep/samtools_coverage'
     }
     covstats {
         path 'reference_prep/covstats/all'
