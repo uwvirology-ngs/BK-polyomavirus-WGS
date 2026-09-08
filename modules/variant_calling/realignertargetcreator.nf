@@ -1,3 +1,9 @@
+/*
+ * Step 2 of the variant_calling subworkflow
+ *
+ * Identifies genomic intervals which require local realignment around indels
+ * by the IndelRealigner tool used in the next step.
+ */
 process GATK_REALIGNERTARGETCREATOR {
 
     label 'process_low'
@@ -7,7 +13,7 @@ process GATK_REALIGNERTARGETCREATOR {
     tuple val(meta), path(bam), path(bai), path(ref), val(ref_info)
 
     output:
-    tuple val(meta), path(bam), path(bai), path(ref), val(ref_info), path("*.intervals"), emit: intervals
+    tuple val(meta), path(bam), path(bai), path(ref), val(ref_info), path("*.intervals"),   emit: intervals
 
     script:
     def avail_mem = 8
@@ -20,12 +26,10 @@ process GATK_REALIGNERTARGETCREATOR {
     samtools faidx "${ref}"
     samtools dict "${ref}" > "${ref.baseName}.dict"
 
-    gatk3 \\
-        -Xmx${avail_mem}g \\
-        -T RealignerTargetCreator \\
-        -nt ${task.cpus} \\
+    gatk3 -Xmx${avail_mem}g -T RealignerTargetCreator \\
         -I ${bam} \\
         -R ${ref} \\
-        -o ${ref.baseName}.intervals
+        -o "${ref.baseName}.intervals" \\
+        -nt ${task.cpus}
     """
 }

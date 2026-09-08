@@ -95,7 +95,7 @@ workflow {
     )
 
     GATK_REALIGNERTARGETCREATOR (
-        PICARD_ADDORREPLACEREADGROUPS.out.bam
+        PICARD_ADDORREPLACEREADGROUPS.out.rg_bam
     )
 
     GATK_INDELREALIGNER (
@@ -104,12 +104,11 @@ workflow {
 
     // tuple val(meta), path(bam), path(bai), path(ref), path(gff), region, val(save_mpileup)
     // needs ref and gff and save_mpileup
-    variants_ch = GATK_INDELREALIGNER.out.bam
+    variants_ch = GATK_INDELREALIGNER.out.realigned_bam
         .map { meta, bam, bai, ref, ref_info -> tuple(
             meta, bam, bai, ref, ref_info,
             "${projectDir}/assets/database/${ref_info.acc}.gff", 
-            Utils.getGenomicRegion(ref_info.acc),
-            false
+            Utils.getGenomicRegion(ref_info.acc)
         )}
 
     CDS_VARIANTS (
@@ -193,6 +192,13 @@ workflow {
     covstats_fail       = REFERENCE_PREP.out.covstats_fail
     refs_tsv            = REFERENCE_PREP.out.refs_tsv
     selected_refs       = REFERENCE_PREP.out.selected_refs
+
+    // variant calling
+    rg_bam              = PICARD_ADDORREPLACEREADGROUPS.out.rg_bam
+    intervals           = GATK_REALIGNERTARGETCREATOR.out.intervals
+    realigned_bam       = GATK_INDELREALIGNER.out.realigned_bam
+    mpileup             = CDS_VARIANTS.out.mpileup
+    variants            = CDS_VARIANTS.out.variants
 }
 
 output {
@@ -257,5 +263,22 @@ output {
     }
     selected_refs {
         path 'reference_prep/selected_refs'
+    }
+
+    // variant calling 
+    rg_bam {
+        path 'variant_calling/picard_addorreplacereadgroups'
+    }
+    intervals {
+        path 'variant_calling/gatk_realignertargetcreator'
+    }
+    realigned_bam {
+        path 'variant_calling/gatk_indelrealigner'
+    }
+    mpileup {
+        path 'variant_calling/samtools_mpileup'
+    }
+    variants {
+        path 'variant_calling/ivar_variants'
     }
 }

@@ -1,3 +1,8 @@
+/*
+ * Step 3 of the variant_calling subworkflow
+ *
+ * Realigns genomic regions to correct potential misalignments around indels.
+ */
 process GATK_INDELREALIGNER {
 
     label 'process_medium'
@@ -7,7 +12,7 @@ process GATK_INDELREALIGNER {
     tuple val(meta), path(bam), path(bai), path(ref), val(ref_info), path(intervals)
 
     output:
-    tuple val(meta), path("*.bam"), path("*.bai"), path(ref), val(ref_info),    emit: bam
+    tuple val(meta), path("*.bam"), path("*.bai"), path(ref), val(ref_info),    emit: realigned_bam
 
     script:
     def avail_mem = 8
@@ -20,12 +25,10 @@ process GATK_INDELREALIGNER {
     samtools faidx "${ref}"
     samtools dict "${ref}" > "${ref.baseName}.dict"
 
-    gatk3 \\
-        -Xmx${avail_mem}g \\
-        -T IndelRealigner \\
+    gatk3 -Xmx${avail_mem}g -T IndelRealigner \\
         -R ${ref} \\
+        -targetIntervals ${intervals} \\
         -I ${bam} \\
-        --targetIntervals ${intervals} \\
         -o ${ref.baseName}.bam \\
         -maxReads 500000
     """

@@ -1,43 +1,35 @@
+/*
+ * Step 4 of the variant_calling subworkflow
+ *
+ * Calls variants on the realigned bam file with ivar variants.
+ */
 process CDS_VARIANTS {
-    tag "${meta.id}"
+
     label 'process_medium'
     container 'quay.io/jefffurlong/ivar:1.4.4'
 
     input:
-    tuple val(meta), path(bam), path(bai), path(ref), val(ref_info), path(gff), val(genomic_region), val(save_mpileup)
+    tuple val(meta), path(bam), path(bai), path(ref), val(ref_info), path(gff), val(genomic_region)
 
     output:
-    tuple val(meta), path("*.tsv"),     emit: tsv
-    tuple val(meta), path("*.mpileup"), optional:true, emit: mpileup
-
-    when:
-    task.ext.when == null || task.ext.when
+    tuple val(meta), path("*.mpileup"), emit: mpileup
+    tuple val(meta), path("*.tsv"),     emit: variants
 
     script:
-    def args = task.ext.args ?: ''
-    def args2 = task.ext.args2 ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
-    def mpileup = save_mpileup ? "| tee ${prefix}.mpileup" : ""
     """
-    samtools mpileup \\
-        $args2 \\
-        --reference $ref \\
-        --region ${genomic_region} \\
-        $bam \\
-        $mpileup \\
-            > "${ref.baseName}.mpileup"
+    samtools mpileup -B ${bam} -r ${genomic_region} -f ${ref} -Q 20 \\
+        --max-depth 0 \\
+        --count-orphans \\
+        --disable-overlap-removal \\
+        > "${ref.baseName}.mpileup"
 
-    cat "${ref.baseName}.mpileup" \\
-        | ivar variants \\
-            $args \\
-            -g $gff \\
-            -r $ref \\
-            -p ${ref.baseName}
-
-    edit_cds_variants.py \\
-        ${ref.baseName}.tsv \\
-        $gff \\
-        $ref \\
-        ${ref.baseName}.reformatted
+    cat "${ref.baseName}.mpileup" | ivar variants \\
+        -q ${params.ivar_variants_q} \\
+        -t ${params.ivar_variants_t} \\
+        -m ${params.ivar_variants_m} \\
+        -G \\
+        -r ${ref} \\
+        -g ${gff} \\
+        -p ${ref.baseName}
     """
 }
