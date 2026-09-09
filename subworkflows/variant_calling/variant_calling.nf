@@ -1,0 +1,50 @@
+/*
+ * Modules
+ */
+include { PICARD_ADDORREPLACEREADGROUPS } from '../../modules/variant_calling/addorreplacereadgroups.nf'
+include { GATK_REALIGNERTARGETCREATOR   } from '../../modules/variant_calling/realignertargetcreator.nf'
+include { GATK_INDELREALIGNER           } from '../../modules/variant_calling/indelrealigner.nf'
+include { CDS_VARIANTS                  } from '../../modules/variant_calling/cds_variants.nf'
+
+/*
+ * Calls variants against the selected reference genome for a particular sample
+ * using ivar variants after indel realignment with GATK. 
+ */
+workflow VARIANT_CALLING {
+
+    take:
+    input_bam_ch    // channel: [ val(meta), path(input_bam), path(ref), val(ref_info) ]
+
+    main:
+    PICARD_ADDORREPLACEREADGROUPS (
+        input_bam_ch
+    )
+
+    GATK_REALIGNERTARGETCREATOR (
+        PICARD_ADDORREPLACEREADGROUPS.out.rg_bam
+    )
+
+    GATK_INDELREALIGNER (
+        GATK_REALIGNERTARGETCREATOR.out.intervals
+    )
+
+    // tuple val(meta), path(bam), path(bai), path(ref), path(gff), region, val(save_mpileup)
+    // needs ref and gff and save_mpileup
+    variants_ch = GATK_INDELREALIGNER.out.realigned_bam
+        .map { meta, bam, bai, ref, ref_info -> tuple(
+            meta, bam, bai, ref, ref_info,
+            "${projectDir}/assets/database/${ref_info.acc}.gff", 
+            Utils.getGenomicRegion(ref_info.acc)
+        )}
+
+    CDS_VARIANTS (
+        variants_ch
+    )
+
+    emit:
+    rg_bam              = PICARD_ADDORREPLACEREADGROUPS.out.rg_bam
+    intervals           = GATK_REALIGNERTARGETCREATOR.out.intervals
+    realigned_bam       = GATK_INDELREALIGNER.out.realigned_bam
+    mpileup             = CDS_VARIANTS.out.mpileup
+    variants            = CDS_VARIANTS.out.variants
+}

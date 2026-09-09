@@ -13,13 +13,13 @@ params {
  */
 include { READ_SAMPLESHEET   } from './subworkflows/core/read_samplesheet.nf'
 include { REFERENCE_PREP     } from './subworkflows/reference_prep/reference_prep.nf'
+include { VARIANT_CALLING    } from './subworkflows/variant_calling/variant_calling.nf'
 include { CONSENSUS_ASSEMBLY } from './subworkflows/consensus_assembly/consensus_assembly.nf'
 
 /*
  * Modules
  */
 include { SEQTK_SAMPLE                      } from './modules/core/seqtk_sample.nf'
-
 include { PICARD_FASTQ_TO_SAM               } from './modules/core/picard_fastq_to_sam.nf'
 include { FGBIO_EXTRACT_UMIS_FROM_BAM       } from './modules/core/fgbio_extract_umis_from_bam.nf'
 include { PICARD_SAM_TO_FASTQ               } from './modules/core/picard_sam_to_fastq.nf'
@@ -31,11 +31,6 @@ include { ALIGN_DUPLEX_CONSENSUS_READS      } from './modules/core/align_duplex_
 include { PICARD_MERGE_CONSENSUS_BAMS       } from './modules/core/picard_merge_consensus_bams.nf'
 include { BUILD_ALIGNMENT_SUMMARY           } from './modules/core/build_alignment_summary.nf'
 include { BUILD_RUN_SUMMARY                 } from './modules/core/build_run_summary.nf'
-
-include { PICARD_ADDORREPLACEREADGROUPS     } from './modules/variant_calling/addorreplacereadgroups.nf'
-include { GATK_REALIGNERTARGETCREATOR       } from './modules/variant_calling/realignertargetcreator.nf'
-include { GATK_INDELREALIGNER               } from './modules/variant_calling/indelrealigner.nf'
-include { CDS_VARIANTS                      } from './modules/variant_calling/cds_variants.nf'
 
 workflow {
     
@@ -88,34 +83,13 @@ workflow {
         merged_bams_ch
     )
 
-    // ----------------------------------- VARIANT CALLING ----------------------------------- 
+    // ----------------------------------- VARIANT CALLING ---------------------------------- 
 
-    PICARD_ADDORREPLACEREADGROUPS (
-        PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam,
+    VARIANT_CALLING (
+        PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
     )
 
-    GATK_REALIGNERTARGETCREATOR (
-        PICARD_ADDORREPLACEREADGROUPS.out.rg_bam
-    )
-
-    GATK_INDELREALIGNER (
-        GATK_REALIGNERTARGETCREATOR.out.intervals
-    )
-
-    // tuple val(meta), path(bam), path(bai), path(ref), path(gff), region, val(save_mpileup)
-    // needs ref and gff and save_mpileup
-    variants_ch = GATK_INDELREALIGNER.out.realigned_bam
-        .map { meta, bam, bai, ref, ref_info -> tuple(
-            meta, bam, bai, ref, ref_info,
-            "${projectDir}/assets/database/${ref_info.acc}.gff", 
-            Utils.getGenomicRegion(ref_info.acc)
-        )}
-
-    CDS_VARIANTS (
-        variants_ch
-    )
-
-    // -------------------------------------- CONSENSUS --------------------------------------
+    // ---------------------------------- CONSENSUS ASSEMBLY ---------------------------------
 
     CONSENSUS_ASSEMBLY (
         REFERENCE_PREP.out.reads,
@@ -194,11 +168,11 @@ workflow {
     selected_refs       = REFERENCE_PREP.out.selected_refs
 
     // variant calling
-    rg_bam              = PICARD_ADDORREPLACEREADGROUPS.out.rg_bam
-    intervals           = GATK_REALIGNERTARGETCREATOR.out.intervals
-    realigned_bam       = GATK_INDELREALIGNER.out.realigned_bam
-    mpileup             = CDS_VARIANTS.out.mpileup
-    variants            = CDS_VARIANTS.out.variants
+    rg_bam              = VARIANT_CALLING.out.rg_bam
+    intervals           = VARIANT_CALLING.out.intervals
+    realigned_bam       = VARIANT_CALLING.out.realigned_bam
+    mpileup             = VARIANT_CALLING.out.mpileup
+    variants            = VARIANT_CALLING.out.variants
 }
 
 output {
