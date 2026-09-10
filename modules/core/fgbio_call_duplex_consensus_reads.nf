@@ -30,6 +30,6 @@ process FGBIO_CALL_DUPLEX_CONSENSUS_READS {
         --error-rate-pre-umi=45 \\
         --error-rate-post-umi=30 \\
         --min-input-base-quality=30 \\
-        --min-reads 2 1 1
+        --min-reads ${params.fgbio_consensus_min_reads}
     """
 }
