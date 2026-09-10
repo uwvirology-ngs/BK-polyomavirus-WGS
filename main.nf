@@ -11,10 +11,11 @@ params {
 /*
  * Subworkflows
  */
-include { READ_SAMPLESHEET   } from './subworkflows/core/read_samplesheet.nf'
-include { REFERENCE_PREP     } from './subworkflows/reference_prep/reference_prep.nf'
-include { VARIANT_CALLING    } from './subworkflows/variant_calling/variant_calling.nf'
-include { CONSENSUS_ASSEMBLY } from './subworkflows/consensus_assembly/consensus_assembly.nf'
+include { READ_SAMPLESHEET                  } from './subworkflows/core/read_samplesheet.nf'
+include { REFERENCE_PREP                    } from './subworkflows/reference_prep/reference_prep.nf'
+include { VARIANT_CALLING as VC_INITIAL     } from './subworkflows/variant_calling/variant_calling.nf'
+include { VARIANT_CALLING as VC_COLLAPSED   } from './subworkflows/variant_calling/variant_calling.nf'
+include { CONSENSUS_ASSEMBLY                } from './subworkflows/consensus_assembly/consensus_assembly.nf'
 
 /*
  * Modules
@@ -83,12 +84,6 @@ workflow {
         merged_bams_ch
     )
 
-    // ----------------------------------- VARIANT CALLING ---------------------------------- 
-
-    VARIANT_CALLING (
-        PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
-    )
-
     // ---------------------------------- CONSENSUS ASSEMBLY ---------------------------------
 
     CONSENSUS_ASSEMBLY (
@@ -117,6 +112,16 @@ workflow {
 
     PICARD_MERGE_CONSENSUS_BAMS (
         consensus_ch
+    )
+
+    // ----------------------------------- VARIANT CALLING ---------------------------------- 
+
+    VC_INITIAL (
+        PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
+    )
+
+    VC_COLLAPSED (
+        PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
     )
 
     // --------------------------------------- SUMMARY ---------------------------------------
@@ -168,11 +173,17 @@ workflow {
     selected_refs       = REFERENCE_PREP.out.selected_refs
 
     // variant calling
-    rg_bam              = VARIANT_CALLING.out.rg_bam
-    intervals           = VARIANT_CALLING.out.intervals
-    realigned_bam       = VARIANT_CALLING.out.realigned_bam
-    mpileup             = VARIANT_CALLING.out.mpileup
-    variants            = VARIANT_CALLING.out.variants
+    rg_bam              = VC_INITIAL.out.rg_bam
+    intervals           = VC_INITIAL.out.intervals
+    realigned_bam       = VC_INITIAL.out.realigned_bam
+    mpileup             = VC_INITIAL.out.mpileup
+    variants            = VC_INITIAL.out.variants
+
+    rg_bam_II           = VC_COLLAPSED.out.rg_bam
+    intervals_II        = VC_COLLAPSED.out.intervals
+    realigned_bam_II    = VC_COLLAPSED.out.realigned_bam
+    mpileup_II          = VC_COLLAPSED.out.mpileup
+    variants_II         = VC_COLLAPSED.out.variants
 }
 
 output {
@@ -254,5 +265,22 @@ output {
     }
     variants {
         path 'variant_calling/ivar_variants'
+    }
+
+    // collapsed
+    rg_bam_II {
+        path 'variant_calling_collapsed/picard_addorreplacereadgroups'
+    }
+    intervals_II {
+        path 'variant_calling_collapsed/gatk_realignertargetcreator'
+    }
+    realigned_bam_II {
+        path 'variant_calling_collapsed/gatk_indelrealigner'
+    }
+    mpileup_II {
+        path 'variant_calling_collapsed/samtools_mpileup'
+    }
+    variants_II {
+        path 'variant_calling_collapsed/ivar_variants'
     }
 }
