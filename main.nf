@@ -117,11 +117,13 @@ workflow {
     // ----------------------------------- VARIANT CALLING ---------------------------------- 
 
     VC_INITIAL (
-        PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
+        PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam,
+        true
     )
 
     VC_COLLAPSED (
-        PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam
+        PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam,
+        false
     )
 
     // --------------------------------------- SUMMARY ---------------------------------------

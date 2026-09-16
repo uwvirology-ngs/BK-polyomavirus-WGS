@@ -14,28 +14,39 @@ workflow VARIANT_CALLING {
 
     take:
     input_bam_ch    // channel: [ val(meta), path(input_bam), path(ref), val(ref_info) ]
+    realign_indels  // boolean: whether or not to realign indels before calling variants
 
     main:
     PICARD_ADDORREPLACEREADGROUPS (
         input_bam_ch
     )
 
-    GATK_REALIGNERTARGETCREATOR (
-        PICARD_ADDORREPLACEREADGROUPS.out.rg_bam
-    )
+    // indel realignment optional due to incompatibility with duplex consensus reads
+    if (realign_indels) {
+        GATK_REALIGNERTARGETCREATOR (
+            PICARD_ADDORREPLACEREADGROUPS.out.rg_bam
+        )
 
-    GATK_INDELREALIGNER (
-        GATK_REALIGNERTARGETCREATOR.out.intervals
-    )
+        GATK_INDELREALIGNER (
+            GATK_REALIGNERTARGETCREATOR.out.intervals
+        )
 
-    // tuple val(meta), path(bam), path(bai), path(ref), path(gff), region, val(save_mpileup)
-    // needs ref and gff and save_mpileup
-    variants_ch = GATK_INDELREALIGNER.out.realigned_bam
-        .map { meta, bam, bai, ref, ref_info -> tuple(
-            meta, bam, bai, ref, ref_info,
-            "${projectDir}/assets/database/${ref_info.acc}.gff", 
-            Utils.getGenomicRegion(ref_info.acc)
-        )}
+        // tuple val(meta), path(bam), path(bai), path(ref), path(gff), region, val(save_mpileup)
+        // needs ref and gff and save_mpileup
+        variants_ch = GATK_INDELREALIGNER.out.realigned_bam
+            .map { meta, bam, bai, ref, ref_info -> tuple(
+                meta, bam, bai, ref, ref_info,
+                "${projectDir}/assets/database/${ref_info.acc}.gff", 
+                Utils.getGenomicRegion(ref_info.acc)
+            )}
+    } else {
+        variants_ch = PICARD_ADDORREPLACEREADGROUPS.out.rg_bam
+            .map { meta, bam, bai, ref, ref_info -> tuple(
+                meta, bam, bai, ref, ref_info,
+                "${projectDir}/assets/database/${ref_info.acc}.gff", 
+                Utils.getGenomicRegion(ref_info.acc)
+            )}
+    }
 
     CDS_VARIANTS (
         variants_ch
@@ -43,8 +54,8 @@ workflow VARIANT_CALLING {
 
     emit:
     rg_bam              = PICARD_ADDORREPLACEREADGROUPS.out.rg_bam
-    intervals           = GATK_REALIGNERTARGETCREATOR.out.intervals
-    realigned_bam       = GATK_INDELREALIGNER.out.realigned_bam
+    intervals           = realign_indels ? GATK_REALIGNERTARGETCREATOR.out.intervals : channel.empty()
+    realigned_bam       = realign_indels ? GATK_INDELREALIGNER.out.realigned_bam     : channel.empty()
     mpileup             = CDS_VARIANTS.out.mpileup
     variants            = CDS_VARIANTS.out.variants
 }
