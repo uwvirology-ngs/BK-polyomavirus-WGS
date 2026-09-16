@@ -21,6 +21,8 @@ include { CONSENSUS_ASSEMBLY                } from './subworkflows/consensus_ass
  * Modules
  */
 include { SEQTK_SAMPLE                      } from './modules/core/seqtk_sample.nf'
+include { FASTQC as FASTQC_RAW              } from './modules/core/fastqc.nf'
+include { FASTQC as FASTQC_UMI_EXTRACTED    } from './modules/core/fastqc.nf'
 include { PICARD_FASTQ_TO_SAM               } from './modules/core/picard_fastq_to_sam.nf'
 include { FGBIO_EXTRACT_UMIS_FROM_BAM       } from './modules/core/fgbio_extract_umis_from_bam.nf'
 include { PICARD_SAM_TO_FASTQ               } from './modules/core/picard_sam_to_fastq.nf'
@@ -54,6 +56,14 @@ workflow {
 
     PICARD_SAM_TO_FASTQ (
         FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
+    )
+
+    FASTQC_RAW (
+        READ_SAMPLESHEET.out.reads
+    )
+
+    FASTQC_UMI_EXTRACTED (
+        PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
     )
 
     // ----------------------------------- REFERENCE PREP ------------------------------------
@@ -186,9 +196,22 @@ workflow {
     realigned_bam_II    = VC_COLLAPSED.out.realigned_bam
     mpileup_II          = VC_COLLAPSED.out.mpileup
     variants_II         = VC_COLLAPSED.out.variants
+
+    // fastqc
+    fastqc_I            = FASTQC_RAW.out.fastqc
+    fastqc_II           = FASTQC_UMI_EXTRACTED.out.fastqc
 }
 
 output {
+
+    fastqc_I {
+        path 'fastqc/raw'
+    }
+
+    fastqc_II {
+        path 'fastqc/umi_extracted'
+    }
+
     unaligned_bam {
         path 'twist/picard_fastq_to_sam'
     }
