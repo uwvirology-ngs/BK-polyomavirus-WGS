@@ -1,4 +1,5 @@
 {
     "input": "${projectDir}/assets/example_run/samplesheet.csv",
-    "output": "example-output"
+    "output": "example-output",
+    "ref_min_cov": 60
 }
