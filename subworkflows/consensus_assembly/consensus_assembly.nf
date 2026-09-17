@@ -1,43 +1,62 @@
-//                                                                                 
-// 2 iterations of consensus assembly using BBMAP for alignment and iVar consensus for consensus calling
-//                                                              
+/*
+ * Modules
+ */
+include { IVAR_CONSENSUS as IVAR_CONSENSUS_INI } from '../../modules/consensus_assembly/ivar_consensus.nf'
+include { BWA_ALIGN_TO_CONSENSUS }               from '../../modules/consensus_assembly/bwa_align_to_consensus.nf'
+include { IVAR_CONSENSUS as IVAR_CONSENSUS_FIN } from '../../modules/consensus_assembly/ivar_consensus.nf'
 
-include { BWA_MEM_ALIGN as BWA_MEM_ALIGN_QUERY                                      } from '../../modules/consensus_assembly/bwa_mem_align' 
-include { IVAR_CONSENSUS_BWA_ALIGN as IVAR_CONSENSUS_BWA_MEM_ALIGN_INITIAL_ASSEMBLY } from './ivar_consensus_bwa_align'
-include { IVAR_CONSENSUS as BUILD_FINAL_CONSENSUS                                   } from '../../modules/consensus_assembly/ivar_consensus'
-                                                                                   
-workflow CONSENSUS_ASSEMBLY {                                                 
-    take:                                                                          
-    ch_reads    // channel: [ val(meta), path(reads) ]                  
-    ch_ref      // channel: [ val(meta), val(ref_info), path(ref) ]                             
-    use_mem2    // val use_mem2
-                                                                                
-    main:                                                                          
+/*
+ * Constructs a consensus genome sequence. Reads are realigned to 
+ * the initial consensus assembly to counteract reference bias. 
+ */
+workflow CONSENSUS_ASSEMBLY {
 
-    BWA_MEM_ALIGN_QUERY(
-        ch_reads,
-        ch_ref,
-        use_mem2
+    take:
+    input_ch    // channel: [ val(meta), path(bam), path(ref), path(ref_info), path(reads) ]
+
+    main:
+    input_ch
+        .multiMap { meta, bam, ref, ref_info, reads ->
+            bam:    tuple(meta, ref_info, bam)
+            ref:    tuple(meta, ref_info, ref)
+            reads:  tuple(meta, ref_info, reads)
+        }
+        .set { input }
+
+    initial_consensus_ch = input.bam
+        .join(input.ref, by: [0, 1])
+
+    IVAR_CONSENSUS_INI (
+        initial_consensus_ch,
+        tuple(
+            params.ivar_consensus_ini_t, 
+            params.ivar_consensus_ini_q, 
+            params.ivar_consensus_ini_m
+        ),
+        "initial"
     )
 
-    IVAR_CONSENSUS_BWA_MEM_ALIGN_INITIAL_ASSEMBLY(
-        BWA_MEM_ALIGN_QUERY.out.bam,
-        BWA_MEM_ALIGN_QUERY.out.ref,
-        BWA_MEM_ALIGN_QUERY.out.reads,
-        use_mem2
+    bwa_ch = input.reads
+        .join(IVAR_CONSENSUS_INI.out.consensus_fa, by: [0, 1])
+
+    BWA_ALIGN_TO_CONSENSUS (
+        bwa_ch
     )
 
+    final_consensus_ch = BWA_ALIGN_TO_CONSENSUS.out.realigned_bam
+        .join(input.ref, by: [0, 1])
 
-    BUILD_FINAL_CONSENSUS (
-        IVAR_CONSENSUS_BWA_MEM_ALIGN_INITIAL_ASSEMBLY.out.bam,
-        IVAR_CONSENSUS_BWA_MEM_ALIGN_INITIAL_ASSEMBLY.out.consensus
+    
+    IVAR_CONSENSUS_FIN (
+        final_consensus_ch,
+        tuple(
+            params.ivar_consensus_fin_t, 
+            params.ivar_consensus_fin_q, 
+            params.ivar_consensus_fin_m
+        ),
+        "final"
     )
 
     emit:
-    final_consensus     = BUILD_FINAL_CONSENSUS.out.consensus
-    initial_consensus   = IVAR_CONSENSUS_BWA_MEM_ALIGN_INITIAL_ASSEMBLY.out.consensus
-    bam                 = IVAR_CONSENSUS_BWA_MEM_ALIGN_INITIAL_ASSEMBLY.out.bam       // channel: [ val(meta), val(ref_info), path(bam), path(bai) ]
-    reads               = IVAR_CONSENSUS_BWA_MEM_ALIGN_INITIAL_ASSEMBLY.out.reads     // channel: [ val(meta), path(reads) ]
-    init_covstats       = BWA_MEM_ALIGN_QUERY.out.covstats
-    final_covstats      = IVAR_CONSENSUS_BWA_MEM_ALIGN_INITIAL_ASSEMBLY.out.covstats
-} 
+    final_consensus = IVAR_CONSENSUS_FIN.out.consensus_fa
+}

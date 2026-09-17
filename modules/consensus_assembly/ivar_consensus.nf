@@ -1,51 +1,50 @@
+/*
+ * Steps 1 and 3 of the consensus assembly workflow.
+ *
+ * Constructs a consensus genome with samtools mpileup and ivar consensus. 
+ * docs: https://andersen-lab.github.io/ivar/html/manualpage.html
+ */
 process IVAR_CONSENSUS {
-    tag "${meta.id}_${ref_info.acc}_${ref_info.tag}"
-    label 'process_high'
+
+    label 'process_medium'
     container 'quay.io/biocontainers/ivar:1.4--h6b7c446_1'
 
     input:
-    tuple val(meta), val(ref_info), path(bam), path(bai)
-    tuple val(meta2), val(ref_info2), path(ref)
+    tuple val(meta), val(ref_info), path(bam), path(ref)
+    tuple val(ivar_t), val(ivar_q), val(ivar_m)
+    val(step)
 
     output:
-    tuple val(meta), val(ref_info), path("*.fa"),       optional: true, emit: consensus
-    tuple val(meta), val(ref_info), path("*.qual.txt"), optional: true, emit: qual
-    tuple val(meta), val(ref_info), path("*.mpileup"),  optional: true, emit: mpileup
-
-    when:
-    task.ext.when == null || task.ext.when
+    tuple val(meta), val(ref_info), path("*.fa"),                   emit: consensus_fa
+    tuple val(meta), val(ref_info), path("*.mpileup"), path(ref),   emit: mpileup, optional: true
 
     script:
-    def args = task.ext.args ?: ''
-    def args2 = task.ext.args2 ?: ''
-    def prefix = task.ext.prefix ?: ''
     """
-
-    if [[ \$(basename "$bam") = "FAILED.sorted.bam" ]]; then
-        echo "Skipping $prefix consensus with $ref; failed depth/coverage previously"
-        rm *.fa
-        exit 0 # shouldn't cause fail if the outputs are optional
-    fi
-
-    samtools \\
-        mpileup \\
-        --reference $ref \\
-        $args2 \\
-        $bam \\
-        | ivar \\
-            consensus \\
-            $args \\
-            -p $prefix \\
-            -i $prefix
+    samtools mpileup \\
+        --reference ${ref} \\
+        --count-orphans \\
+        --no-BAQ \\
+        --max-depth 0 \\
+        --min-BQ 0 \\
+        -aa \\
+        ${bam} \\
+    | ivar consensus \\
+        -t ${ivar_t} \\
+        -q ${ivar_q} \\
+        -m ${ivar_m} \\
+        -n N \\
+        -p "${meta.id}_${ref_info.acc}_${step}"
 
     # get rid of linebreaks except the header line
-    awk '/^>/ {printf "%s\\n", \$0; next} {printf "%s", \$0} END {print ""}' ${prefix}.fa > ${prefix}_temp.fa
-    # removing leading Ns
-    sed '/^>/!s/^N\\+//' ${prefix}_temp.fa > ${prefix}_temp_frontNtrimmed.fa
-    # remove trailing Ns
-    sed '/^>/!s/N\\+\$//' ${prefix}_temp_frontNtrimmed.fa > ${prefix}.fa
+    awk '/^>/ {printf "%s\\n", \$0; next} {printf "%s", \$0} END {print ""}' ${meta.id}_${ref_info.acc}.fa > ${meta.id}_${ref_info.acc}_temp.fa
     
-    rm ${prefix}_temp.fa
-    rm ${prefix}_temp_frontNtrimmed.fa
+    # removing leading Ns
+    sed '/^>/!s/^N\\+//' ${meta.id}_${ref_info.acc}_temp.fa > ${meta.id}_${ref_info.acc}_temp_frontNtrimmed.fa
+    
+    # remove trailing Ns
+    sed '/^>/!s/N\\+\$//' ${meta.id}_${ref_info.acc}_temp_frontNtrimmed.fa > ${meta.id}_${ref_info.acc}.fa
+    
+    rm ${meta.id}_${ref_info.acc}_temp.fa
+    rm ${meta.id}_${ref_info.acc}_temp_frontNtrimmed.fa
     """
 }

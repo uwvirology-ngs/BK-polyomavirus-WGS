@@ -96,10 +96,11 @@ workflow {
 
     // ---------------------------------- CONSENSUS ASSEMBLY ---------------------------------
 
+    consensus_ch = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
+        .combine(PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved, by: 0)
+
     CONSENSUS_ASSEMBLY (
-        REFERENCE_PREP.out.reads,
-        REFERENCE_PREP.out.ref,
-        false
+        consensus_ch
     )
 
     // ---------------------------------------- TWIST ----------------------------------------
@@ -200,6 +201,9 @@ workflow {
     // fastqc
     fastqc_I            = FASTQC_RAW.out.fastqc
     fastqc_II           = FASTQC_UMI_EXTRACTED.out.fastqc
+
+    // consensus assembly
+    final_consensus     = CONSENSUS_ASSEMBLY.out.final_consensus
 }
 
 output {
@@ -307,5 +311,10 @@ output {
     }
     variants_II {
         path 'variant_calling_collapsed/ivar_variants'
+    }
+
+    // consensus assembly
+    final_consensus {
+        path 'consensus_assembly/final_consensus'
     }
 }
