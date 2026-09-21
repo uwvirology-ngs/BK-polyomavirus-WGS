@@ -9,7 +9,7 @@ process CDS_VARIANTS {
     container 'quay.io/jefffurlong/ivar:1.4.4'
 
     input:
-    tuple val(meta), path(bam), path(bai), path(ref), val(ref_info), path(gff), val(genomic_region)
+    tuple val(meta), val(ref_info), path(ref), path(bam), path(bai), path(gff), val(genomic_region)
 
     output:
     tuple val(meta), path("*.mpileup"), emit: mpileup

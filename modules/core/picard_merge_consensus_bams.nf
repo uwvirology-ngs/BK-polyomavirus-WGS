@@ -9,10 +9,10 @@ process PICARD_MERGE_CONSENSUS_BAMS {
     label 'process_high'
 
     input:
-    tuple val(meta), path(unaligned_consensus_bam), path(aligned_consensus_bam), path(ref), val(ref_info)
+    tuple val(meta), val(ref_info), path(ref), path(unaligned_consensus_bam), path(aligned_consensus_bam)
 
     output:
-    tuple val(meta), path("*_consensus_aligned_merged.bam"), path(ref), val(ref_info), emit: final_consensus_bam
+    tuple val(meta), val(ref_info), path(ref), path("*_consensus_aligned_merged.bam"),  emit: final_consensus_bam
 
     script:
     def avail_mem = 8

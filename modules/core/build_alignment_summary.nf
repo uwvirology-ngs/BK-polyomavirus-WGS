@@ -7,7 +7,7 @@ process BUILD_ALIGNMENT_SUMMARY {
     label 'process_low'
 
     input:
-    tuple val(meta), path(merged_bam), path(consensus_bam), path(ref), val(ref_info), path(consensus_fa), val(genomic_region), val(genomic_region_len)
+    tuple val(meta), val(ref_info), path(ref), path(merged_bam), path(consensus_bam), path(consensus_fa), val(genomic_region), val(genomic_region_len)
 
     output:
     tuple val(meta), path("*.tsv"),     emit: alignment_summary

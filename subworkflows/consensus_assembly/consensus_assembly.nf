@@ -12,11 +12,11 @@ include { IVAR_CONSENSUS as IVAR_CONSENSUS_FIN } from '../../modules/consensus_a
 workflow CONSENSUS_ASSEMBLY {
 
     take:
-    input_ch    // channel: [ val(meta), path(bam), path(ref), path(ref_info), path(reads) ]
+    input_ch    // channel: [ val(meta), path(ref_info), path(ref), path(bam), path(reads) ]
 
     main:
     input_ch
-        .multiMap { meta, bam, ref, ref_info, reads ->
+        .multiMap { meta, ref_info, ref, bam, reads ->
             bam:    tuple(meta, ref_info, bam)
             ref:    tuple(meta, ref_info, ref)
             reads:  tuple(meta, ref_info, reads)

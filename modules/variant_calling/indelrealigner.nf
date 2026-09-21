@@ -9,10 +9,10 @@ process GATK_INDELREALIGNER {
     container 'community.wave.seqera.io/library/gatk_samtools:5773d856edb307d7'
 
     input:
-    tuple val(meta), path(bam), path(bai), path(ref), val(ref_info), path(intervals)
+    tuple val(meta), val(ref_info), path(ref), path(bam), path(bai), path(intervals)
 
     output:
-    tuple val(meta), path("*.bam"), path("*.bai"), path(ref), val(ref_info),    emit: realigned_bam
+    tuple val(meta), val(ref_info), path(ref), path("*.bam"), path("*.bai"),    emit: realigned_bam
 
     script:
     def avail_mem = 8

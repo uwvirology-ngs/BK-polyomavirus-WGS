@@ -9,10 +9,10 @@ process BWA_ALIGN_FASTQ {
     label 'process_high'
 
     input: 
-    tuple val(meta), path(reads), path(ref), val(ref_info)
+    tuple val(meta), val(ref_info), path(ref), path(reads)
 
     output: 
-    tuple val(meta), path("*.bam"), path(ref), val(ref_info),   emit: aligned_umi_extracted_bam
+    tuple val(meta), val(ref_info), path(ref), path("*.bam"),   emit: aligned_umi_extracted_bam
 
     script: 
     """

@@ -9,10 +9,10 @@ process PICARD_ADDORREPLACEREADGROUPS {
     container 'quay.io/biocontainers/picard:3.3.0--hdfd78af_0'
 
     input:
-    tuple val(meta), path(input_bam), path(ref), val(ref_info)
+    tuple val(meta), val(ref_info), path(ref), path(input_bam)
 
     output:
-    tuple val(meta), path("*.bam"), path("*.bai"), path(ref), val(ref_info),    emit: rg_bam
+    tuple val(meta), val(ref_info), path(ref), path("*.bam"), path("*.bai"),    emit: rg_bam
 
     script:
     def avail_mem = 8

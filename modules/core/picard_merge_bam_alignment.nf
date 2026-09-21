@@ -10,10 +10,10 @@ process PICARD_MERGE_BAM_ALIGNMENT {
     label 'process_high'
 
     input:
-    tuple val(meta), path(aligned_bam), path(ref), val(ref_info), path(umi_extracted_bam)
+    tuple val(meta), val(ref_info), path(ref), path(aligned_bam), path(umi_extracted_bam)
 
     output:
-    tuple val(meta), path("*.bam"), path(ref), val(ref_info),  emit: merged_bam
+    tuple val(meta), val(ref_info), path(ref), path("*.bam"),   emit: merged_bam
 
     script:
     def avail_mem = 8

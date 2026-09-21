@@ -68,7 +68,7 @@ workflow {
 
     // ----------------------------------- REFERENCE PREP ------------------------------------
 
-    // select reference genome with revica-strm and combine with umi-extracted FASTQs
+    // select reference genome by mapping umi-extracted reads to a database
     REFERENCE_PREP (
         PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired,
         file(params.db)
@@ -76,9 +76,8 @@ workflow {
 
     // ----------------------------------- Back to Twist ------------------------------------
 
-    bwa_align_ch = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
-        .combine(REFERENCE_PREP.out.ref, by: 0)
-        .map {meta, reads, ref_info, ref -> tuple(meta, reads, ref, ref_info)}
+    bwa_align_ch = REFERENCE_PREP.out.ref
+        .combine(PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved, by: 0)
 
     BWA_ALIGN_FASTQ(
         bwa_align_ch
@@ -88,7 +87,6 @@ workflow {
     // and record the reference genome used in metadata
     merged_bams_ch = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
         .combine(FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam, by: 0)
-        .map { meta, bam1, ref, ref_info, bam2 -> tuple(meta + [pair_name: ref.baseName], bam1, ref, ref_info, bam2) }
 
     PICARD_MERGE_BAM_ALIGNMENT(
         merged_bams_ch
@@ -118,8 +116,8 @@ workflow {
     )
 
     consensus_ch = FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
-        .join(ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam)
-        .map { meta, bam1, ref1, ref_info1, bam2, _ref2, _ref_info2 -> tuple(meta, bam1, bam2, ref1, ref_info1) }
+        .join(ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam, by: [0, 1])
+        .map { meta, ref_info, ref, bam1, _ref, bam2 -> tuple(meta, ref_info, ref, bam1, bam2) }
 
     PICARD_MERGE_CONSENSUS_BAMS (
         consensus_ch
@@ -138,16 +136,16 @@ workflow {
     )
 
     // --------------------------------------- SUMMARY ---------------------------------------
-    
-    CONSENSUS_ASSEMBLY.out.final_consensus
-        .map { meta, ref_info, fasta -> tuple(meta + [pair_name: "${meta.id}_${ref_info.acc}"], ref_info, fasta) }
-        .set { consensus_to_summary_ch }
 
     alignment_summary_ch = PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
-        .join(PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam)
-        .map { meta, bam1, ref1, ref_info1, bam2, _ref2, _ref_info2 -> tuple(meta, bam1, bam2, ref1, ref_info1) }
-        .join(consensus_to_summary_ch)
-        .map { meta, bam1, bam2, ref, ref_info1, _ref_info2, consensus_fa -> tuple(meta, bam1, bam2, ref, ref_info1, consensus_fa, Utils.getGenomicRegion(ref_info1.acc), Utils.getCDSLen(ref_info1.acc)) }
+        .join(PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam, by: [0, 1])
+        .map { meta, ref_info, ref, bam1, _ref, bam2 -> tuple(meta, ref_info, ref, bam1, bam2) }
+        .join(CONSENSUS_ASSEMBLY.out.final_consensus, by: [0, 1])
+        .map { meta, ref_info, ref, bam1, bam2, consensus_fa -> tuple(
+            meta, ref_info, ref, bam1, bam2, consensus_fa, 
+            Utils.getGenomicRegion(ref_info.acc), 
+            Utils.getCDSLen(ref_info.acc)
+        ) }
 
     BUILD_ALIGNMENT_SUMMARY (
         alignment_summary_ch
