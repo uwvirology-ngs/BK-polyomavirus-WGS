@@ -141,8 +141,9 @@ workflow {
         .join(PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam, by: [0, 1])
         .map { meta, ref_info, ref, bam1, _ref, bam2 -> tuple(meta, ref_info, ref, bam1, bam2) }
         .join(CONSENSUS_ASSEMBLY.out.final_consensus, by: [0, 1])
-        .map { meta, ref_info, ref, bam1, bam2, consensus_fa -> tuple(
-            meta, ref_info, ref, bam1, bam2, consensus_fa, 
+        .combine(READ_SAMPLESHEET.out.reads, by: 0)
+        .map { meta, ref_info, ref, bam1, bam2, consensus_fa, reads -> tuple(
+            meta, ref_info, ref, bam1, bam2, consensus_fa, reads,
             Utils.getGenomicRegion(ref_info.acc), 
             Utils.getCDSLen(ref_info.acc)
         ) }

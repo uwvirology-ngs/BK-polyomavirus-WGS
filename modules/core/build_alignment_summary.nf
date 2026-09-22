@@ -7,7 +7,7 @@ process BUILD_ALIGNMENT_SUMMARY {
     label 'process_low'
 
     input:
-    tuple val(meta), val(ref_info), path(ref), path(merged_bam), path(consensus_bam), path(consensus_fa), val(genomic_region), val(genomic_region_len)
+    tuple val(meta), val(ref_info), path(ref), path(merged_bam), path(consensus_bam), path(consensus_fa), path(reads), val(genomic_region), val(genomic_region_len)
 
     output:
     tuple val(meta), path("*.tsv"),     emit: alignment_summary
@@ -23,7 +23,11 @@ process BUILD_ALIGNMENT_SUMMARY {
     ref_header="${ref_info.header}"
 
     # 3. mapping stats
-    raw_reads=\$(samtools view -c ${merged_bam})
+    fastq_1=\$(echo ${reads} | cut -d' ' -f1)
+    fastq_2=\$(echo ${reads} | cut -d' ' -f2)
+    raw_reads_1=\$(zgrep -c ^ \$fastq_1 | awk '{print \$1/4}')
+    raw_reads_2=\$(zgrep -c ^ \$fastq_2 | awk '{print \$1/4}')
+    raw_reads=\$(expr \$raw_reads_1 + \$raw_reads_2)
     mapped_reads=\$(samtools view -c -F 4 ${merged_bam})
     
     x100_reads_mapped=\$(echo "\$mapped_reads * 100" | bc)
