@@ -12,6 +12,7 @@ if __name__ == "__main__":
     parser.add_argument("bam", type = str)
     parser.add_argument("sample_id", type = str)
     parser.add_argument("umi_input", type = str)
+    parser.add_argument("hist", type = str)
 
     args = parser.parse_args()
 
@@ -67,3 +68,45 @@ if __name__ == "__main__":
     )
     
     plt.close()
+
+    # load in hist of UMI family sizes from FGBIO GroupReadsByUMI
+    df = pd.read_csv(args.hist, sep='\t')
+
+    # Set up the figure with 2 subplots (sharing the x-axis)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
+
+    # 1. Top Panel: Family Size vs. Count (Log scale for y-axis)
+    ax1.plot(
+        df["family_size"],
+        df["count"],
+        marker = "o",
+        markersize = 4,
+        linestyle = "None",
+        color = "#348ABD"
+    )
+    ax1.set_yscale("log")
+    ax1.set_ylabel("Read Count (Log Scale)", fontsize = 12)
+    ax1.set_title(
+        "FGBio GroupReadsByUMI: Distribution of Read Family Sizes",
+        fontsize = 14,
+        fontweight = "bold",
+        pad = 10,
+    )
+
+    # 2. Bottom Panel: Family Size vs. Cumulative Fraction (>= family size)
+    ax2.plot(
+        df["family_size"],
+        df["fraction_gt_or_eq_family_size"],
+        marker = "s",
+        markersize = 3,
+        linestyle = "-",
+        color = "#E24A33",
+        linewidth = 1.0,
+    )
+    ax2.set_xlabel("Family Size", fontsize = 12)
+    ax2.set_ylabel("Cumulative Fraction", fontsize = 12)
+    ax2.set_ylim(-0.05, 1.05)
+
+    # Adjust layout and save plot
+    plt.tight_layout()
+    plt.savefig(f"{args.sample_id}_umi_family_size.png", dpi = 300)

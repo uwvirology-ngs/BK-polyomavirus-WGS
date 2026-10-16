@@ -109,8 +109,11 @@ workflow {
     )
 
     if (params.umiInput != null) {
-        UMI_QC(
-            FGBIO_GROUP_READS_BY_UMI.out.grouped_bam,
+        umi_qc_ch = FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
+            .join(FGBIO_GROUP_READS_BY_UMI.out.grouped_hist, by: [0, 1])
+
+        UMI_QC (
+            umi_qc_ch,
             file(params.umiInput)
         )
     }

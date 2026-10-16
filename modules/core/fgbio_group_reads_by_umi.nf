@@ -13,7 +13,7 @@ process FGBIO_GROUP_READS_BY_UMI {
 
     output:
     tuple val(meta), val(ref_info), path(ref), path("*.bam"),   emit: grouped_bam
-    tuple val(meta), path("*histogram.txt"),                    emit: grouped_hist
+    tuple val(meta), val(ref_info), path("*histogram.txt"),     emit: grouped_hist
 
     script:
     def avail_mem = 8

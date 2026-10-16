@@ -8,7 +8,7 @@ process UMI_QC {
     label 'process_low'
 
     input:
-    tuple val(meta), val(ref_info), path(ref), path(bam)
+    tuple val(meta), val(ref_info), path(ref), path(bam), path(hist_txt)
     path(umi_input)
 
     output:
@@ -16,6 +16,6 @@ process UMI_QC {
 
     script:
     """
-    umi_qc.py ${bam} ${meta.id} ${umi_input}
+    umi_qc.py ${bam} ${ref.simpleName} ${umi_input} ${hist_txt}
     """
 }
