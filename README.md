@@ -8,9 +8,27 @@
 
 ## Description
 
+### About
+
 Analyze BK Polyomavirus sequencing libraries prepared with the Twist Unique Molecular Identifier (UMI) Adapter System.
 
 Here we produce alignments, consensus sequences, tabulated variants, and UMI-aware duplex consensus sequences given FASTQ files created by Illumina short-read sequencing experiments on BK Polyomavirus samples. This implementation follows and builds upon the guideline provided by [Twist Bioscience](https://www.twistbioscience.com/) for processing sequencing data prepared with their [UMI adapter system](https://www.twistbioscience.com/products/ngs/library-preparation/twist-umi-adapter-system). 
+
+### Genotyping
+
+Currently, the pipeline supports identification of the following:
+
+| Subtype | Genotype | Genbank_Acc |
+|---------|---------|---------|
+| BKPyV_Ia | I | PV856444.1 |
+| BKPyV_Ib1 | I | PV856408.1 |
+| BKPyV_Ib2 | I | PV856409.1 |
+| BKPyV_Ic | I | PZ129835.1 |
+| BKPyV_II | II | PV856429.1 |
+| BKPyV_III | III | PX257737.1 |
+| BKPyV_IV | IV | PV856452.1 |
+
+Additionally, alignment is performed the [BK Refseq](https://www.ncbi.nlm.nih.gov/nuccore/NC_001538.1/).
 
 ## Limitations
 
