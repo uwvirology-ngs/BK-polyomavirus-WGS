@@ -202,12 +202,14 @@ workflow {
     realigned_bam       = VC_INITIAL.out.realigned_bam
     mpileup             = VC_INITIAL.out.mpileup
     variants            = VC_INITIAL.out.variants
+    vcf                 = VC_INITIAL.out.vcf
 
     rg_bam_II           = VC_COLLAPSED.out.rg_bam
     intervals_II        = VC_COLLAPSED.out.intervals
     realigned_bam_II    = VC_COLLAPSED.out.realigned_bam
     mpileup_II          = VC_COLLAPSED.out.mpileup
     variants_II         = VC_COLLAPSED.out.variants
+    vcf_II              = VC_COLLAPSED.out.vcf
 
     // fastqc
     fastqc_I            = FASTQC_RAW.out.fastqc
@@ -309,6 +311,9 @@ output {
     variants {
         path 'variant_calling/ivar_variants'
     }
+    vcf {
+        path 'variant_calling/bcftools'
+    }
 
     // collapsed
     rg_bam_II {
@@ -325,6 +330,9 @@ output {
     }
     variants_II {
         path 'variant_calling_collapsed/ivar_variants'
+    }
+    vcf_II {
+        path 'variant_calling_collapsed/bcftools'
     }
 
     // consensus assembly

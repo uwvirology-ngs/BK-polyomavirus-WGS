@@ -5,6 +5,7 @@ include { PICARD_ADDORREPLACEREADGROUPS } from '../../modules/variant_calling/ad
 include { GATK_REALIGNERTARGETCREATOR   } from '../../modules/variant_calling/realignertargetcreator.nf'
 include { GATK_INDELREALIGNER           } from '../../modules/variant_calling/indelrealigner.nf'
 include { CDS_VARIANTS                  } from '../../modules/variant_calling/cds_variants.nf'
+include { BCFTOOLS                      } from '../../modules/variant_calling/bcftools.nf'
 
 /*
  * Calls variants against the selected reference genome for a particular sample
@@ -17,6 +18,7 @@ workflow VARIANT_CALLING {
     realign_indels  // boolean: whether or not to realign indels before calling variants
 
     main:
+    // ivar variants workflow
     PICARD_ADDORREPLACEREADGROUPS (
         input_bam_ch
     )
@@ -52,10 +54,16 @@ workflow VARIANT_CALLING {
         variants_ch
     )
 
+    // bcftools workflow
+    BCFTOOLS (
+        input_bam_ch
+    )
+
     emit:
     rg_bam              = PICARD_ADDORREPLACEREADGROUPS.out.rg_bam
     intervals           = realign_indels ? GATK_REALIGNERTARGETCREATOR.out.intervals : channel.empty()
     realigned_bam       = realign_indels ? GATK_INDELREALIGNER.out.realigned_bam     : channel.empty()
     mpileup             = CDS_VARIANTS.out.mpileup
     variants            = CDS_VARIANTS.out.variants
+    vcf                 = BCFTOOLS.out.vcf
 }
