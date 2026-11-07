@@ -29,6 +29,7 @@ include { PICARD_SAM_TO_FASTQ               } from './modules/core/picard_sam_to
 include { BWA_ALIGN_FASTQ                   } from './modules/core/bwa_align_fastq.nf'
 include { PICARD_MERGE_BAM_ALIGNMENT        } from './modules/core/picard_merge_bam_alignment.nf'
 include { FGBIO_GROUP_READS_BY_UMI          } from './modules/core/fgbio_group_reads_by_umi.nf'
+include { FGBIO_COLLECT_DUPLEX_SEQ_METRICS  } from './modules/core/fgbio_collect_duplex_seq_metrics'
 include { UMI_QC                            } from './modules/core/umi_qc.nf'
 include { FGBIO_CALL_DUPLEX_CONSENSUS_READS } from './modules/core/fgbio_call_duplex_consensus_reads.nf'
 include { ALIGN_DUPLEX_CONSENSUS_READS      } from './modules/core/align_duplex_consensus_reads.nf'
@@ -108,6 +109,10 @@ workflow {
         PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
     )
 
+    FGBIO_COLLECT_DUPLEX_SEQ_METRICS (
+        FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
+    )
+
     if (params.umiInput != null) {
         umi_qc_ch = FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
             .join(FGBIO_GROUP_READS_BY_UMI.out.grouped_hist, by: [0, 1])
@@ -180,6 +185,7 @@ workflow {
     merged_bam                      = PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
     grouped_bam                     = FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
     grouped_hist                    = FGBIO_GROUP_READS_BY_UMI.out.grouped_hist
+    duplex_seq_metrics              = FGBIO_COLLECT_DUPLEX_SEQ_METRICS.out.duplex_seq_metrics
     umi_qc                          = params.umiInput ? UMI_QC.out.umi_qc_plots : channel.empty()
     unaligned_consensus_bam         = FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
     aligned_consensus_bam           = ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam
@@ -252,6 +258,9 @@ output {
     }
     grouped_hist {
         path 'twist/picard_group_reads_by_umi/hist'
+    }
+    duplex_seq_metrics {
+        path 'twist/duplex_seq_metrics'
     }
     umi_qc {
         path 'twist/umi_qc_plots'
