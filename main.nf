@@ -11,11 +11,11 @@ params {
 /*
  * Subworkflows
  */
-include { READ_SAMPLESHEET                  } from './subworkflows/read_samplesheet.nf'
 include { TWIST_I_UMI_EXTRACTION            } from './subworkflows/twist_i.nf'
-include { REFERENCE_PREP                    } from './subworkflows/reference_prep.nf'
 include { TWIST_II_ALIGNMENT                } from './subworkflows/twist_ii.nf'
 include { TWIST_III_COLLAPSE                } from './subworkflows/twist_iii.nf'
+include { READ_SAMPLESHEET                  } from './subworkflows/read_samplesheet.nf'
+include { REFERENCE_PREP                    } from './subworkflows/reference_prep.nf'
 include { VARIANT_CALLING as VC_INITIAL     } from './subworkflows/variant_calling.nf'
 include { VARIANT_CALLING as VC_COLLAPSED   } from './subworkflows/variant_calling.nf'
 include { CONSENSUS_ASSEMBLY                } from './subworkflows/consensus_assembly.nf'
@@ -24,8 +24,8 @@ include { CONSENSUS_ASSEMBLY                } from './subworkflows/consensus_ass
  * Modules
  */
 include { SEQTK_SAMPLE                      } from './modules/core/seqtk_sample.nf'
-include { FASTQC as FASTQC_RAW              } from './modules/core/fastqc.nf'
-include { FASTQC as FASTQC_UMI_EXTRACTED    } from './modules/core/fastqc.nf'
+include { FASTQC                            } from './modules/core/fastqc.nf'
+include { MULTIQC                           } from './modules/core/multiqc.nf'
 include { FGBIO_COLLECT_DUPLEX_SEQ_METRICS  } from './modules/core/fgbio_collect_duplex_seq_metrics'
 include { UMI_QC                            } from './modules/core/umi_qc.nf'
 include { BUILD_ALIGNMENT_SUMMARY           } from './modules/core/build_alignment_summary.nf'
@@ -34,61 +34,65 @@ include { BUILD_RUN_SUMMARY                 } from './modules/core/build_run_sum
 workflow {
     
     main:
+    // --------------------------------------- FASTQ Input ----------------------------------------
+    
+    // Parse samplesheet and retrieve paired-end fastq files
     READ_SAMPLESHEET (
         params.input
     )
 
-    FASTQC_RAW (
-        READ_SAMPLESHEET.out.reads
-    )
-
+    // Downsample reads as needed
     SEQTK_SAMPLE (
         READ_SAMPLESHEET.out.reads
     )
+
+    // -------------------------------------- UMI Extraction --------------------------------------
 
     // Extract UMI sequences from reads, storing in an unaligned BAM file
     TWIST_I_UMI_EXTRACTION (
         SEQTK_SAMPLE.out.sampled_reads
     )
 
-    FASTQC_UMI_EXTRACTED (
+    // ------------------------------------- Quality Control --------------------------------------
+
+    // Run FASTQC on UMI-extracted reads
+    FASTQC (
         TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_interleaved
     )
 
-    // ----------------------------------- REFERENCE PREP ------------------------------------
+    // Aggregate FASTQC results and report as HTML
+    MULTIQC (
+        FASTQC.out.fastqc.collect()
+    )
 
-    // select reference genome by mapping umi-extracted reads to a database
+    // -------------------------------------- Reference Prep --------------------------------------
+
+    // Select reference genome(s) by mapping umi-extracted reads to a BKPyV sequence database
     REFERENCE_PREP (
         TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_paired,
         file(params.db)
     )
 
-    // ----------------------------------- Back to Twist ------------------------------------
+    // ---------------------------------- Alignment to Reference ----------------------------------
 
     // channel: [ val(meta), val(ref_info), path(ref), path(reads), path(umi_extracted_bam) ]
     alignment_ch = REFERENCE_PREP.out.ref
         .combine(TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_interleaved, by: 0)
         .combine(TWIST_I_UMI_EXTRACTION.out.umi_extracted_bam, by: 0)
     
+    // Align umi-extracted reads to selected reference(s) and build BAM files grouped by UMI
     TWIST_II_ALIGNMENT (
         alignment_ch
     )
 
-    // ---------------------------------- CONSENSUS ASSEMBLY ---------------------------------
+    // ---------------------------------- Quality Control (UMI) -----------------------------------
 
-    consensus_ch = TWIST_II_ALIGNMENT.out.aligned_umi_extracted_bam
-        .combine(TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_interleaved, by: 0)
-
-    CONSENSUS_ASSEMBLY (
-        consensus_ch
-    )
-
-    // ---------------------------------------- TWIST ----------------------------------------
-
+    // Collect QC metrics for duplex sequencing data from FGBIO output
     FGBIO_COLLECT_DUPLEX_SEQ_METRICS (
         TWIST_II_ALIGNMENT.out.grouped_bam
     )
 
+    // If a UMI list is provided, build additional QC plots showing UMI distribution
     if (params.umiInput != null) {
         umi_qc_ch = TWIST_II_ALIGNMENT.out.grouped_bam
             .join(TWIST_II_ALIGNMENT.out.grouped_hist, by: [0, 1])
@@ -99,17 +103,33 @@ workflow {
         )
     }
 
+    // --------------------------------------- UMI Collapse ---------------------------------------
+
+    // Build final consensus BAM file
     TWIST_III_COLLAPSE (
         TWIST_II_ALIGNMENT.out.grouped_bam
     )
 
-    // ----------------------------------- VARIANT CALLING ---------------------------------- 
+    // ------------------------------------ Consensus Assembly ------------------------------------
 
+     // channel: [ val(meta), path(ref_info), path(ref), path(bam), path(reads) ]
+    consensus_ch = TWIST_II_ALIGNMENT.out.aligned_umi_extracted_bam
+        .combine(TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_interleaved, by: 0)
+
+    // Assemble consensus genome(s) against each selected reference
+    CONSENSUS_ASSEMBLY (
+        consensus_ch
+    )
+
+    // ----------------------------------- Variant Calling ---------------------------------- 
+
+    // Call variants against BAM file from initial alignment
     VC_INITIAL (
         TWIST_II_ALIGNMENT.out.merged_bam,
         true
     )
 
+    // Call variants against final consensus BAM file
     VC_COLLAPSED (
         TWIST_III_COLLAPSE.out.final_consensus_bam,
         false
@@ -182,8 +202,8 @@ workflow {
     vcf_II              = VC_COLLAPSED.out.vcf
 
     // fastqc
-    fastqc_I            = FASTQC_RAW.out.fastqc
-    fastqc_II           = FASTQC_UMI_EXTRACTED.out.fastqc
+    fastqc              = FASTQC.out.fastqc
+    multiqc             = MULTIQC.out.multiqc
 
     // consensus assembly
     final_consensus     = CONSENSUS_ASSEMBLY.out.final_consensus
@@ -191,12 +211,11 @@ workflow {
 
 output {
 
-    fastqc_I {
-        path 'fastqc/raw'
+    fastqc {
+        path 'fastqc'
     }
-
-    fastqc_II {
-        path 'fastqc/umi_extracted'
+    multiqc {
+        path 'multiqc'
     }
 
     unaligned_bam {

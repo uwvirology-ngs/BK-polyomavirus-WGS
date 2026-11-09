@@ -10,7 +10,7 @@ process FASTQC {
     tuple val(meta), path(reads)
 
     output:
-    tuple val(meta), path("*"),     emit: fastqc
+    path("*"),  emit: fastqc
 
     script:
     """
