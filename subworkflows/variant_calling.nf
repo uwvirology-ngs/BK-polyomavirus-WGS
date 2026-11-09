@@ -1,11 +1,11 @@
 /*
  * Modules
  */
-include { PICARD_ADDORREPLACEREADGROUPS } from '../../modules/variant_calling/addorreplacereadgroups.nf'
-include { GATK_REALIGNERTARGETCREATOR   } from '../../modules/variant_calling/realignertargetcreator.nf'
-include { GATK_INDELREALIGNER           } from '../../modules/variant_calling/indelrealigner.nf'
-include { CDS_VARIANTS                  } from '../../modules/variant_calling/cds_variants.nf'
-include { BCFTOOLS                      } from '../../modules/variant_calling/bcftools.nf'
+include { PICARD_ADDORREPLACEREADGROUPS } from '../modules/variant_calling/addorreplacereadgroups.nf'
+include { GATK_REALIGNERTARGETCREATOR   } from '../modules/variant_calling/realignertargetcreator.nf'
+include { GATK_INDELREALIGNER           } from '../modules/variant_calling/indelrealigner.nf'
+include { CDS_VARIANTS                  } from '../modules/variant_calling/cds_variants.nf'
+include { BCFTOOLS                      } from '../modules/variant_calling/bcftools.nf'
 
 /*
  * Calls variants against the selected reference genome for a particular sample

@@ -1,9 +1,9 @@
 /*
  * Modules
  */
-include { IVAR_CONSENSUS as IVAR_CONSENSUS_INI } from '../../modules/consensus_assembly/ivar_consensus.nf'
-include { BWA_ALIGN_TO_CONSENSUS }               from '../../modules/consensus_assembly/bwa_align_to_consensus.nf'
-include { IVAR_CONSENSUS as IVAR_CONSENSUS_FIN } from '../../modules/consensus_assembly/ivar_consensus.nf'
+include { IVAR_CONSENSUS as IVAR_CONSENSUS_INI } from '../modules/consensus_assembly/ivar_consensus.nf'
+include { BWA_ALIGN_TO_CONSENSUS }               from '../modules/consensus_assembly/bwa_align_to_consensus.nf'
+include { IVAR_CONSENSUS as IVAR_CONSENSUS_FIN } from '../modules/consensus_assembly/ivar_consensus.nf'
 
 /*
  * Constructs a consensus genome sequence. Reads are realigned to 

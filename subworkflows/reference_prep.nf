@@ -1,10 +1,10 @@
 /*
  * Modules
  */
-include { BWA_ALIGN_TO_DB   } from '../../modules/reference_prep/bwa_align_to_db.nf'
-include { SAMTOOLS_COVERAGE } from '../../modules/reference_prep/samtools_coverage.nf'
-include { SELECT_REFERENCES } from '../../modules/reference_prep/select_references.nf'
-include { SAMTOOLS_FAIDX    } from '../../modules/reference_prep/samtools_faidx.nf'
+include { BWA_ALIGN_TO_DB   } from '../modules/reference_prep/bwa_align_to_db.nf'
+include { SAMTOOLS_COVERAGE } from '../modules/reference_prep/samtools_coverage.nf'
+include { SELECT_REFERENCES } from '../modules/reference_prep/select_references.nf'
+include { SAMTOOLS_FAIDX    } from '../modules/reference_prep/samtools_faidx.nf'
 
 /*
  * Selects acceptable reference genomes among the provided database using 

@@ -11,11 +11,14 @@ params {
 /*
  * Subworkflows
  */
-include { READ_SAMPLESHEET                  } from './subworkflows/core/read_samplesheet.nf'
-include { REFERENCE_PREP                    } from './subworkflows/reference_prep/reference_prep.nf'
-include { VARIANT_CALLING as VC_INITIAL     } from './subworkflows/variant_calling/variant_calling.nf'
-include { VARIANT_CALLING as VC_COLLAPSED   } from './subworkflows/variant_calling/variant_calling.nf'
-include { CONSENSUS_ASSEMBLY                } from './subworkflows/consensus_assembly/consensus_assembly.nf'
+include { READ_SAMPLESHEET                  } from './subworkflows/read_samplesheet.nf'
+include { TWIST_I_UMI_EXTRACTION            } from './subworkflows/twist_i.nf'
+include { REFERENCE_PREP                    } from './subworkflows/reference_prep.nf'
+include { TWIST_II_ALIGNMENT                } from './subworkflows/twist_ii.nf'
+include { TWIST_III_COLLAPSE                } from './subworkflows/twist_iii.nf'
+include { VARIANT_CALLING as VC_INITIAL     } from './subworkflows/variant_calling.nf'
+include { VARIANT_CALLING as VC_COLLAPSED   } from './subworkflows/variant_calling.nf'
+include { CONSENSUS_ASSEMBLY                } from './subworkflows/consensus_assembly.nf'
 
 /*
  * Modules
@@ -23,81 +26,58 @@ include { CONSENSUS_ASSEMBLY                } from './subworkflows/consensus_ass
 include { SEQTK_SAMPLE                      } from './modules/core/seqtk_sample.nf'
 include { FASTQC as FASTQC_RAW              } from './modules/core/fastqc.nf'
 include { FASTQC as FASTQC_UMI_EXTRACTED    } from './modules/core/fastqc.nf'
-include { PICARD_FASTQ_TO_SAM               } from './modules/core/picard_fastq_to_sam.nf'
-include { FGBIO_EXTRACT_UMIS_FROM_BAM       } from './modules/core/fgbio_extract_umis_from_bam.nf'
-include { PICARD_SAM_TO_FASTQ               } from './modules/core/picard_sam_to_fastq.nf'
-include { BWA_ALIGN_FASTQ                   } from './modules/core/bwa_align_fastq.nf'
-include { PICARD_MERGE_BAM_ALIGNMENT        } from './modules/core/picard_merge_bam_alignment.nf'
-include { FGBIO_GROUP_READS_BY_UMI          } from './modules/core/fgbio_group_reads_by_umi.nf'
 include { FGBIO_COLLECT_DUPLEX_SEQ_METRICS  } from './modules/core/fgbio_collect_duplex_seq_metrics'
 include { UMI_QC                            } from './modules/core/umi_qc.nf'
-include { FGBIO_CALL_DUPLEX_CONSENSUS_READS } from './modules/core/fgbio_call_duplex_consensus_reads.nf'
-include { ALIGN_DUPLEX_CONSENSUS_READS      } from './modules/core/align_duplex_consensus_reads.nf'
-include { PICARD_MERGE_CONSENSUS_BAMS       } from './modules/core/picard_merge_consensus_bams.nf'
 include { BUILD_ALIGNMENT_SUMMARY           } from './modules/core/build_alignment_summary.nf'
 include { BUILD_RUN_SUMMARY                 } from './modules/core/build_run_summary.nf'
 
 workflow {
     
     main:
-    READ_SAMPLESHEET(
+    READ_SAMPLESHEET (
         params.input
-    )
-
-    SEQTK_SAMPLE (
-        READ_SAMPLESHEET.out.reads
-    )
-
-    PICARD_FASTQ_TO_SAM (
-        SEQTK_SAMPLE.out.sampled_reads
-    )
-
-    FGBIO_EXTRACT_UMIS_FROM_BAM (
-        PICARD_FASTQ_TO_SAM.out.unaligned_bam
-    )
-
-    PICARD_SAM_TO_FASTQ (
-        FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
     )
 
     FASTQC_RAW (
         READ_SAMPLESHEET.out.reads
     )
 
+    SEQTK_SAMPLE (
+        READ_SAMPLESHEET.out.reads
+    )
+
+    // Extract UMI sequences from reads, storing in an unaligned BAM file
+    TWIST_I_UMI_EXTRACTION (
+        SEQTK_SAMPLE.out.sampled_reads
+    )
+
     FASTQC_UMI_EXTRACTED (
-        PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
+        TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_interleaved
     )
 
     // ----------------------------------- REFERENCE PREP ------------------------------------
 
     // select reference genome by mapping umi-extracted reads to a database
     REFERENCE_PREP (
-        PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired,
+        TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_paired,
         file(params.db)
     )
 
     // ----------------------------------- Back to Twist ------------------------------------
 
-    bwa_align_ch = REFERENCE_PREP.out.ref
-        .combine(PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved, by: 0)
-
-    BWA_ALIGN_FASTQ(
-        bwa_align_ch
-    )
-
-    // combine each aligned BAM with the correct UMI-extracted bam from Twist step 2 
-    // and record the reference genome used in metadata
-    merged_bams_ch = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
-        .combine(FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam, by: 0)
-
-    PICARD_MERGE_BAM_ALIGNMENT(
-        merged_bams_ch
+    // channel: [ val(meta), val(ref_info), path(ref), path(reads), path(umi_extracted_bam) ]
+    alignment_ch = REFERENCE_PREP.out.ref
+        .combine(TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_interleaved, by: 0)
+        .combine(TWIST_I_UMI_EXTRACTION.out.umi_extracted_bam, by: 0)
+    
+    TWIST_II_ALIGNMENT (
+        alignment_ch
     )
 
     // ---------------------------------- CONSENSUS ASSEMBLY ---------------------------------
 
-    consensus_ch = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
-        .combine(PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved, by: 0)
+    consensus_ch = TWIST_II_ALIGNMENT.out.aligned_umi_extracted_bam
+        .combine(TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_interleaved, by: 0)
 
     CONSENSUS_ASSEMBLY (
         consensus_ch
@@ -105,17 +85,13 @@ workflow {
 
     // ---------------------------------------- TWIST ----------------------------------------
 
-    FGBIO_GROUP_READS_BY_UMI(
-        PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
-    )
-
     FGBIO_COLLECT_DUPLEX_SEQ_METRICS (
-        FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
+        TWIST_II_ALIGNMENT.out.grouped_bam
     )
 
     if (params.umiInput != null) {
-        umi_qc_ch = FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
-            .join(FGBIO_GROUP_READS_BY_UMI.out.grouped_hist, by: [0, 1])
+        umi_qc_ch = TWIST_II_ALIGNMENT.out.grouped_bam
+            .join(TWIST_II_ALIGNMENT.out.grouped_hist, by: [0, 1])
 
         UMI_QC (
             umi_qc_ch,
@@ -123,38 +99,26 @@ workflow {
         )
     }
 
-    FGBIO_CALL_DUPLEX_CONSENSUS_READS(
-        FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
-    )
-
-    ALIGN_DUPLEX_CONSENSUS_READS(
-        FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
-    )
-
-    consensus_ch = FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
-        .join(ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam, by: [0, 1])
-        .map { meta, ref_info, ref, bam1, _ref, bam2 -> tuple(meta, ref_info, ref, bam1, bam2) }
-
-    PICARD_MERGE_CONSENSUS_BAMS (
-        consensus_ch
+    TWIST_III_COLLAPSE (
+        TWIST_II_ALIGNMENT.out.grouped_bam
     )
 
     // ----------------------------------- VARIANT CALLING ---------------------------------- 
 
     VC_INITIAL (
-        PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam,
+        TWIST_II_ALIGNMENT.out.merged_bam,
         true
     )
 
     VC_COLLAPSED (
-        PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam,
+        TWIST_III_COLLAPSE.out.final_consensus_bam,
         false
     )
 
     // --------------------------------------- SUMMARY ---------------------------------------
 
-    alignment_summary_ch = PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
-        .join(PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam, by: [0, 1])
+    alignment_summary_ch = TWIST_II_ALIGNMENT.out.merged_bam
+        .join(TWIST_III_COLLAPSE.out.final_consensus_bam, by: [0, 1])
         .map { meta, ref_info, ref, bam1, _ref, bam2 -> tuple(meta, ref_info, ref, bam1, bam2) }
         .join(CONSENSUS_ASSEMBLY.out.final_consensus, by: [0, 1])
         .combine(READ_SAMPLESHEET.out.reads, by: 0)
@@ -177,19 +141,19 @@ workflow {
     )
 
     publish:
-    unaligned_bam                   = PICARD_FASTQ_TO_SAM.out.unaligned_bam
-    umi_extracted_bam               = FGBIO_EXTRACT_UMIS_FROM_BAM.out.umi_extracted_bam
-    umi_extracted_fastq_interleaved = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_interleaved
-    umi_extracted_fastq_paired      = PICARD_SAM_TO_FASTQ.out.umi_extracted_fastq_paired
-    aligned_umi_extracted_bam       = BWA_ALIGN_FASTQ.out.aligned_umi_extracted_bam
-    merged_bam                      = PICARD_MERGE_BAM_ALIGNMENT.out.merged_bam
-    grouped_bam                     = FGBIO_GROUP_READS_BY_UMI.out.grouped_bam
-    grouped_hist                    = FGBIO_GROUP_READS_BY_UMI.out.grouped_hist
+    unaligned_bam                   = TWIST_I_UMI_EXTRACTION.out.unaligned_bam
+    umi_extracted_bam               = TWIST_I_UMI_EXTRACTION.out.umi_extracted_bam
+    umi_extracted_fastq_interleaved = TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_interleaved
+    umi_extracted_fastq_paired      = TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_paired
+    aligned_umi_extracted_bam       = TWIST_II_ALIGNMENT.out.aligned_umi_extracted_bam
+    merged_bam                      = TWIST_II_ALIGNMENT.out.merged_bam
+    grouped_bam                     = TWIST_II_ALIGNMENT.out.grouped_bam
+    grouped_hist                    = TWIST_II_ALIGNMENT.out.grouped_hist
     duplex_seq_metrics              = FGBIO_COLLECT_DUPLEX_SEQ_METRICS.out.duplex_seq_metrics
     umi_qc                          = params.umiInput ? UMI_QC.out.umi_qc_plots : channel.empty()
-    unaligned_consensus_bam         = FGBIO_CALL_DUPLEX_CONSENSUS_READS.out.unaligned_consensus_bam
-    aligned_consensus_bam           = ALIGN_DUPLEX_CONSENSUS_READS.out.aligned_consensus_bam
-    final_consensus_bam             = PICARD_MERGE_CONSENSUS_BAMS.out.final_consensus_bam
+    unaligned_consensus_bam         = TWIST_III_COLLAPSE.out.unaligned_consensus_bam
+    aligned_consensus_bam           = TWIST_III_COLLAPSE.out.aligned_consensus_bam
+    final_consensus_bam             = TWIST_III_COLLAPSE.out.final_consensus_bam
     alignment_summary               = BUILD_ALIGNMENT_SUMMARY.out.alignment_summary
     run_summary                     = BUILD_RUN_SUMMARY.out.run_summary
 
