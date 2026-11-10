@@ -28,6 +28,7 @@ include { FASTQC                            } from './modules/core/fastqc.nf'
 include { MULTIQC                           } from './modules/core/multiqc.nf'
 include { FGBIO_COLLECT_DUPLEX_SEQ_METRICS  } from './modules/core/fgbio_collect_duplex_seq_metrics'
 include { UMI_QC                            } from './modules/core/umi_qc.nf'
+include { SAMTOOLS_SORT                     } from './modules/core/samtools_sort.nf'
 include { BUILD_ALIGNMENT_SUMMARY           } from './modules/core/build_alignment_summary.nf'
 include { BUILD_RUN_SUMMARY                 } from './modules/core/build_run_summary.nf'
 
@@ -85,6 +86,11 @@ workflow {
         alignment_ch
     )
 
+    // Generate coordinate-sorted BAM files for input into consensus assembly and variant calling
+    SAMTOOLS_SORT (
+        TWIST_II_ALIGNMENT.out.grouped_bam
+    )
+
     // ---------------------------------- Quality Control (UMI) -----------------------------------
 
     // Collect QC metrics for duplex sequencing data from FGBIO output
@@ -113,7 +119,7 @@ workflow {
     // ------------------------------------ Consensus Assembly ------------------------------------
 
      // channel: [ val(meta), path(ref_info), path(ref), path(bam), path(reads) ]
-    consensus_ch = TWIST_II_ALIGNMENT.out.aligned_umi_extracted_bam
+    consensus_ch = SAMTOOLS_SORT.out.grouped_coord_sorted_bam
         .combine(TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_interleaved, by: 0)
 
     // Assemble consensus genome(s) against each selected reference
@@ -125,7 +131,7 @@ workflow {
 
     // Call variants against BAM file from initial alignment
     VC_INITIAL (
-        TWIST_II_ALIGNMENT.out.merged_bam,
+        SAMTOOLS_SORT.out.grouped_coord_sorted_bam,
         true
     )
 
