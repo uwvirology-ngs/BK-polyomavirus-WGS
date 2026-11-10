@@ -10,7 +10,7 @@ process BUILD_ALIGNMENT_SUMMARY {
     tuple val(meta), val(ref_info), path(ref), path(merged_bam), path(consensus_bam), path(consensus_fa), path(reads), val(genomic_region), val(genomic_region_len)
 
     output:
-    tuple val(meta), path("*.tsv"),     emit: alignment_summary
+    path("*.tsv"),  emit: alignment_summary
 
     script:
     """

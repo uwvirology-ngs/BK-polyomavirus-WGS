@@ -138,11 +138,14 @@ workflow {
     // Call variants against final consensus BAM file
     VC_COLLAPSED (
         TWIST_III_COLLAPSE.out.final_consensus_bam,
-        false
+        false   // skip indel realignment
     )
 
     // --------------------------------------- SUMMARY ---------------------------------------
 
+    // channel: [ val(meta), val(ref_info), path(ref), path(merged_bam), 
+    //            path(consensus_bam), path(consensus_fa), path(reads), 
+    //            val(genomic_region), val(genomic_region_len)           ]
     alignment_summary_ch = TWIST_II_ALIGNMENT.out.merged_bam
         .join(TWIST_III_COLLAPSE.out.final_consensus_bam, by: [0, 1])
         .map { meta, ref_info, ref, bam1, _ref, bam2 -> tuple(meta, ref_info, ref, bam1, bam2) }
@@ -154,187 +157,81 @@ workflow {
             Utils.getCDSLen(ref_info.acc)
         ) }
 
+    // Generate a summary tsv file for every alignment
     BUILD_ALIGNMENT_SUMMARY (
         alignment_summary_ch
     )
 
-    run_summary_ch = BUILD_ALIGNMENT_SUMMARY.out.alignment_summary
-        .map { _meta, tsv -> tsv }
-        .collect()
-
+    // Compile the summary files into a run summary report
     BUILD_RUN_SUMMARY (
-        run_summary_ch
+        BUILD_ALIGNMENT_SUMMARY.out.alignment_summary.collect()
     )
 
     publish:
-    unaligned_bam                   = TWIST_I_UMI_EXTRACTION.out.unaligned_bam
-    umi_extracted_bam               = TWIST_I_UMI_EXTRACTION.out.umi_extracted_bam
-    umi_extracted_fastq_interleaved = TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_interleaved
-    umi_extracted_fastq_paired      = TWIST_I_UMI_EXTRACTION.out.umi_extracted_fastq_paired
-    aligned_umi_extracted_bam       = TWIST_II_ALIGNMENT.out.aligned_umi_extracted_bam
-    merged_bam                      = TWIST_II_ALIGNMENT.out.merged_bam
-    grouped_bam                     = TWIST_II_ALIGNMENT.out.grouped_bam
-    grouped_hist                    = TWIST_II_ALIGNMENT.out.grouped_hist
-    duplex_seq_metrics              = FGBIO_COLLECT_DUPLEX_SEQ_METRICS.out.duplex_seq_metrics
-    umi_qc                          = params.umiInput ? UMI_QC.out.umi_qc_plots : channel.empty()
-    unaligned_consensus_bam         = TWIST_III_COLLAPSE.out.unaligned_consensus_bam
-    aligned_consensus_bam           = TWIST_III_COLLAPSE.out.aligned_consensus_bam
-    final_consensus_bam             = TWIST_III_COLLAPSE.out.final_consensus_bam
-    alignment_summary               = BUILD_ALIGNMENT_SUMMARY.out.alignment_summary
-    run_summary                     = BUILD_RUN_SUMMARY.out.run_summary
+    // core pipeline
+    umi_extracted_bam   = TWIST_I_UMI_EXTRACTION.out.umi_extracted_bam
+    grouped_bam         = TWIST_II_ALIGNMENT.out.grouped_bam
+    grouped_hist        = TWIST_II_ALIGNMENT.out.grouped_hist
+    final_consensus_bam = TWIST_III_COLLAPSE.out.final_consensus_bam
 
-    // reference_prep
+    // reference selection
     alignment_to_db     = REFERENCE_PREP.out.alignment_to_db
     samtools_coverage   = REFERENCE_PREP.out.samtools_coverage
-    covstats            = REFERENCE_PREP.out.covstats
+    covstats_all        = REFERENCE_PREP.out.covstats
     covstats_pass       = REFERENCE_PREP.out.covstats_pass
     covstats_fail       = REFERENCE_PREP.out.covstats_fail
-    refs_tsv            = REFERENCE_PREP.out.refs_tsv
-    selected_refs       = REFERENCE_PREP.out.selected_refs
 
-    // variant calling
-    rg_bam              = VC_INITIAL.out.rg_bam
-    intervals           = VC_INITIAL.out.intervals
-    realigned_bam       = VC_INITIAL.out.realigned_bam
-    mpileup             = VC_INITIAL.out.mpileup
-    variants            = VC_INITIAL.out.variants
-    vcf                 = VC_INITIAL.out.vcf
+    // variant calling | umi-grouped bam (I) vs. final consensus bam (II)
+    mpileup_I           = VC_INITIAL.out.mpileup
+    variants_I          = VC_INITIAL.out.variants
+    vcf_I               = VC_INITIAL.out.vcf
 
-    rg_bam_II           = VC_COLLAPSED.out.rg_bam
-    intervals_II        = VC_COLLAPSED.out.intervals
-    realigned_bam_II    = VC_COLLAPSED.out.realigned_bam
     mpileup_II          = VC_COLLAPSED.out.mpileup
     variants_II         = VC_COLLAPSED.out.variants
     vcf_II              = VC_COLLAPSED.out.vcf
 
-    // fastqc
+    // consensus genome assembly
+    final_consensus     = CONSENSUS_ASSEMBLY.out.final_consensus
+
+    // qc and run summary
     fastqc              = FASTQC.out.fastqc
     multiqc             = MULTIQC.out.multiqc
-
-    // consensus assembly
-    final_consensus     = CONSENSUS_ASSEMBLY.out.final_consensus
+    duplex_seq_metrics  = FGBIO_COLLECT_DUPLEX_SEQ_METRICS.out.duplex_seq_metrics
+    umi_qc              = params.umiInput ? UMI_QC.out.umi_qc_plots : channel.empty()
+    run_summary         = BUILD_RUN_SUMMARY.out.run_summary
 }
 
 output {
 
-    fastqc {
-        path 'fastqc'
-    }
-    multiqc {
-        path 'multiqc'
-    }
+    // core pipeline
+    umi_extracted_bam   { path 'core/fgbio_extract_umis_from_bam'             }
+    grouped_bam         { path 'core/picard_group_reads_by_umi/bam'           }
+    grouped_hist        { path 'core/picard_group_reads_by_umi/hist'          }
+    final_consensus_bam { path 'core/picard_merge_consensus_bams'             }
+    
+    // reference selection
+    alignment_to_db     { path 'reference_prep/align_to_db_bam'               }
+    samtools_coverage   { path 'reference_prep/samtools_coverage'             }
+    covstats_all        { path 'reference_prep/covstats/all'                  }
+    covstats_pass       { path 'reference_prep/covstats/pass'                 }
+    covstats_fail       { path 'reference_prep/covstats/fail'                 }
 
-    unaligned_bam {
-        path 'twist/picard_fastq_to_sam'
-    }
-    umi_extracted_bam {
-        path 'twist/fgbio_extract_umis_from_bam'
-    }
-    umi_extracted_fastq_interleaved {
-        path 'twist/picard_sam_to_fastq/interleaved'
-    }
-    umi_extracted_fastq_paired {
-        path 'twist/picard_sam_to_fastq/paired'
-    }
-    aligned_umi_extracted_bam {
-        path 'twist/bwa_align_fastq'
-    }
-    merged_bam {
-        path 'twist/picard_merge_bam_alignment'
-    }
-    grouped_bam {
-        path 'twist/picard_group_reads_by_umi/bam'
-    }
-    grouped_hist {
-        path 'twist/picard_group_reads_by_umi/hist'
-    }
-    duplex_seq_metrics {
-        path 'twist/duplex_seq_metrics'
-    }
-    umi_qc {
-        path 'twist/umi_qc_plots'
-    }
-    unaligned_consensus_bam {
-        path 'twist/fgbio_call_duplex_consensus_reads'
-    }
-    aligned_consensus_bam {
-        path 'twist/align_duplex_consensus_reads'
-    }
-    final_consensus_bam {
-        path 'twist/picard_merge_consensus_bams'
-    }
-    alignment_summary {
-        path 'summaries/alignment_summary'
-    }
-    run_summary {
-        path 'summaries/run_summary'
-    }
+    // variant calling | umi-grouped bam (I) vs. final consensus bam (II)
+    mpileup_I           { path 'variant_calling/initial/samtools_mpileup'     }
+    variants_I          { path 'variant_calling/initial/ivar_variants'        }
+    vcf_I               { path 'variant_calling/initial/bcftools'             }
 
-    // reference_prep
-    alignment_to_db {
-        path 'reference_prep/align_to_db_bams'
-    }
-    samtools_coverage {
-        path 'reference_prep/samtools_coverage'
-    }
-    covstats {
-        path 'reference_prep/covstats/all'
-    }
-    covstats_pass {
-        path 'reference_prep/covstats/pass'
-    }
-    covstats_fail {
-        path 'reference_prep/covstats/fail'
-    }
-    refs_tsv {
-        path 'reference_prep/refs_tsv'
-    }
-    selected_refs {
-        path 'reference_prep/selected_refs'
-    }
+    mpileup_II          { path 'variant_calling/collapsed/samtools_mpileup'   }
+    variants_II         { path 'variant_calling/collapsed/ivar_variants'      }
+    vcf_II              { path 'variant_calling/collapsed/bcftools'           }
 
-    // variant calling 
-    rg_bam {
-        path 'variant_calling/picard_addorreplacereadgroups'
-    }
-    intervals {
-        path 'variant_calling/gatk_realignertargetcreator'
-    }
-    realigned_bam {
-        path 'variant_calling/gatk_indelrealigner'
-    }
-    mpileup {
-        path 'variant_calling/samtools_mpileup'
-    }
-    variants {
-        path 'variant_calling/ivar_variants'
-    }
-    vcf {
-        path 'variant_calling/bcftools'
-    }
-
-    // collapsed
-    rg_bam_II {
-        path 'variant_calling_collapsed/picard_addorreplacereadgroups'
-    }
-    intervals_II {
-        path 'variant_calling_collapsed/gatk_realignertargetcreator'
-    }
-    realigned_bam_II {
-        path 'variant_calling_collapsed/gatk_indelrealigner'
-    }
-    mpileup_II {
-        path 'variant_calling_collapsed/samtools_mpileup'
-    }
-    variants_II {
-        path 'variant_calling_collapsed/ivar_variants'
-    }
-    vcf_II {
-        path 'variant_calling_collapsed/bcftools'
-    }
-
-    // consensus assembly
-    final_consensus {
-        path 'consensus_assembly/final_consensus'
-    }
+    // consensus genome assembly
+    final_consensus     { path 'consensus_assembly/final_consensus'           }
+    
+    // qc and run summary
+    fastqc              { path 'qc/fastqc'                                    }
+    multiqc             { path 'qc/multiqc'                                   }
+    duplex_seq_metrics  { path 'qc/duplex_seq_metrics'                        }
+    umi_qc              { path 'qc/umi_qc_plots'                              }
+    run_summary         { path '.'                                            }
 }
